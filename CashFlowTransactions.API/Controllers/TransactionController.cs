@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using CashFlowTransactions.Application.Services;
 using CashFlowTransactions.Domain.Entities;
 using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 
 namespace CashFlowTransactions.API.Controllers
 {
@@ -27,9 +29,35 @@ namespace CashFlowTransactions.API.Controllers
             if (transaction == null)
                 return BadRequest("Transação inválida");
 
-            await _transactionService.RegisterAsync(transaction);
+            var savedTransaction = await _transactionService.RegisterAsync(transaction);
             
-            return Ok("Transaction registered successfully");
+            return CreatedAtAction(nameof(GetTransactionById), new { id = savedTransaction.Id }, savedTransaction);
         }
+
+        /// <summary>
+        /// Obtém todas as transações
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Transaction>>> GetAllTransactions()
+        {
+            var transactions = await _transactionService.GetAllAsync();
+            return Ok(transactions);
+        }
+
+        /// <summary>
+        /// Obtém uma transação pelo ID
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Transaction>> GetTransactionById(int id)
+        {
+            var transaction = await _transactionService.GetByIdAsync(id);
+            
+            if (transaction == null)
+                return NotFound();
+                
+            return Ok(transaction);
+        }
+
+       
     }
 } 
