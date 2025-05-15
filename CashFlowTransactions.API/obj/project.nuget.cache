@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "4PfsMba7jkw=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\andrs\\source\\repos\\CashFlowTransactions\\CashFlowTransactions.API\\CashFlowTransactions.API.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\andrs\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.4\\microsoft.aspnetcore.openapi.9.0.4.nupkg.sha512",
+    "C:\\Users\\andrs\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}

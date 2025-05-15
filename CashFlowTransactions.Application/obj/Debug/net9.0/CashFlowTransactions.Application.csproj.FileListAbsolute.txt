@@ -1,0 +1,4 @@
+C:\Users\andrs\source\repos\FluxoCaixaTransacoes\CashFlowTransactions.Application\obj\Debug\net9.0\CashFlowTransactions.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\andrs\source\repos\FluxoCaixaTransacoes\CashFlowTransactions.Application\obj\Debug\net9.0\CashFlowTransactions.Application.AssemblyInfoInputs.cache
+C:\Users\andrs\source\repos\FluxoCaixaTransacoes\CashFlowTransactions.Application\obj\Debug\net9.0\CashFlowTransactions.Application.AssemblyInfo.cs
+C:\Users\andrs\source\repos\FluxoCaixaTransacoes\CashFlowTransactions.Application\obj\Debug\net9.0\CashFlowTransactions.Application.csproj.CoreCompileInputs.cache

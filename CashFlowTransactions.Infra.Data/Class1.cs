@@ -1,0 +1,7 @@
+﻿namespace CashFlowTransactions.Infra.Data
+{
+    public class Class1
+    {
+
+    }
+}
