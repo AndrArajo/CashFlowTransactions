@@ -1,24 +1,34 @@
+using CashFlowTransactions.Domain.Entities;
+using CashFlowTransactions.Domain.Interfaces;
+
 namespace CashFlowTransactions.Worker
 {
     public class Worker : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
+        private readonly ITransactionQueueConsumer _consumer;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ITransactionQueueConsumer consumer)
         {
-            _logger = logger;
+            _consumer = consumer;
+            _consumer.OnMessageReceived += HandleTransactionReceived;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                if (_logger.IsEnabled(LogLevel.Information))
-                {
-                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                }
-                await Task.Delay(1000, stoppingToken);
-            }
+            // O consumer já é um background service e possui sua própria implementação
+            // de ExecuteAsync, então não precisamos chamá-lo diretamente
+            await Task.CompletedTask;
+        }
+
+        private void HandleTransactionReceived(object sender, Transaction transaction)
+        {
+            // Aqui podemos adicionar lógica adicional de processamento se necessário
+            // O consumer já está persistindo a transação no banco de dados
+        }
+
+        public override async Task StopAsync(CancellationToken stoppingToken)
+        {
+            await base.StopAsync(stoppingToken);
         }
     }
 }

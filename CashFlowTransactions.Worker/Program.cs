@@ -2,16 +2,29 @@ using CashFlowTransactions.Infra.IoC;
 using CashFlowTransactions.Infra.Data.Context;
 using CashFlowTransactions.Worker;
 using Microsoft.EntityFrameworkCore;
+using CashFlowTransactions.Domain.Interfaces;
+using CashFlowTransactions.Infra.Message.Kafka;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// Adicionar serviços
-builder.Services.AddHostedService<Worker>();
+// Configurar a ordem de prioridade de configuração
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables()
+    .AddUserSecrets<Program>(optional: true);
 
-// Registrar dependências do IoC
 builder.Services.AddDependencyInjection(builder.Configuration);
 
-// Configurar logging
+
+builder.Services.AddHostedService<KafkaTransactionConsumer>(sp => 
+{
+    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    return new KafkaTransactionConsumer(configuration, scopeFactory);
+});
+
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 

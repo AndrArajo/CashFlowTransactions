@@ -30,6 +30,7 @@ namespace CashFlowTransactions.Infra.IoC
 
             // Registrar serviços de mensageria
             services.AddScoped<ITransactionQueuePublisher, KafkaTransactionPublisher>();
+      
             services.AddScoped<ITransactionQueueConsumer, KafkaTransactionConsumer>();
 
             return services;

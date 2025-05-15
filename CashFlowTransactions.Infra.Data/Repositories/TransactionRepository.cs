@@ -32,11 +32,13 @@ namespace CashFlowTransactions.Infra.Data.Repositories
             return await _context.Transactions.ToListAsync();
         }
 
+   
 
-        public async Task<Transaction> GetByIdAsync(int id)
+        public async Task<Transaction?> GetByIdAsync(int id)
         {
             return await _context.Transactions.FindAsync(id);
         }
 
+   
     }
 } 

@@ -19,5 +19,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CashFlowTransactions.Domain\CashFlowTransactions.Domain.csproj" />
     <ProjectReference Include="..\CashFlowTransactions.Infra.IoC\CashFlowTransactions.Infra.IoC.csproj" />
+    <ProjectReference Include="..\CashFlowTransactions.Infra.Message\CashFlowTransactions.Infra.Message.csproj" />
   </ItemGroup>
 </Project>
