@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FluxoCaixaTransacoes.Domain\CashFlowTransactions.Domain.csproj" />
+    <ProjectReference Include="..\CashFlowTransactions.Domain\CashFlowTransactions.Domain.csproj" />
   </ItemGroup>
 
 </Project>
