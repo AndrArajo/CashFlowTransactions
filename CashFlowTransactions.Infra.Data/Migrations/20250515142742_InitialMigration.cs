@@ -13,21 +13,21 @@ namespace CashFlowTransactions.Infra.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Transactions",
+                name: "transactions",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Description = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    Origin = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    TransactionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    description = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    type = table.Column<int>(type: "integer", nullable: false),
+                    origin = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    transaction_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Transactions", x => x.Id);
+                    table.PrimaryKey("pk_transactions", x => x.id);
                 });
         }
 
@@ -35,7 +35,7 @@ namespace CashFlowTransactions.Infra.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Transactions");
+                name: "transactions");
         }
     }
 }

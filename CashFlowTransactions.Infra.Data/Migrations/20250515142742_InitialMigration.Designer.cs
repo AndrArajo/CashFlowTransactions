@@ -27,35 +27,35 @@ namespace CashFlowTransactions.Infra.Data.Migrations
 
             modelBuilder.Entity("CashFlowTransactions.Domain.Entities.Transaction", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
-                    b.Property<decimal>("Amount")
+                    b.Property<decimal>("amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("created_at")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("description")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<string>("Origin")
+                    b.Property<string>("origin")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime>("TransactionDate")
+                    b.Property<DateTime>("transaction_date")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Type")
+                    b.Property<int>("type")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
-                    b.ToTable("Transactions", (string)null);
+                    b.ToTable("transactions", (string)null);
                 });
 #pragma warning restore 612, 618
         }

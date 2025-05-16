@@ -5,6 +5,17 @@ using Microsoft.EntityFrameworkCore;
 using CashFlowTransactions.Domain.Interfaces;
 using CashFlowTransactions.Infra.Message.Kafka;
 using Microsoft.Extensions.DependencyInjection;
+using DotNetEnv;
+
+// Carregar variáveis do arquivo .env se existir
+if (File.Exists(".env"))
+{
+    Env.Load();
+}
+else if (File.Exists("../.env"))
+{
+    Env.Load("../.env");
+}
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -14,6 +25,23 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables()
     .AddUserSecrets<Program>(optional: true);
+
+if (Env.GetBool("LOADED", false))
+{
+    // Configuração do banco de dados
+    builder.Configuration["ConnectionStrings:DefaultConnection"] = 
+        $"Host={Env.GetString("DB_HOST", "localhost")};" +
+        $"Port={Env.GetString("DB_PORT", "5432")};" +
+        $"Database={Env.GetString("POSTGRES_DB", "cashflow")};" +
+        $"Username={Env.GetString("POSTGRES_USER", "postgres")};" +
+        $"Password={Env.GetString("POSTGRES_PASSWORD", "postgres")}";
+
+    // Configuração do Kafka
+    builder.Configuration["Kafka:BootstrapServers"] = Env.GetString("KAFKA_BOOTSTRAP_SERVERS", "localhost:29092");
+    builder.Configuration["Kafka:Topic"] = Env.GetString("KAFKA_TOPIC", "transactions");
+    builder.Configuration["Kafka:GroupId"] = Env.GetString("KAFKA_GROUP_ID", "transaction-consumer-group");
+    builder.Configuration["Kafka:AutoOffsetReset"] = Env.GetString("KAFKA_AUTO_OFFSET_RESET", "earliest");
+}
 
 builder.Services.AddDependencyInjection(builder.Configuration);
 

@@ -71,22 +71,18 @@ namespace CashFlowTransactions.Infra.Message.Kafka
                             var transaction = JsonConvert.DeserializeObject<Transaction>(consumeResult.Message.Value);
                             if (transaction != null)
                             {
-                                // Criar um escopo para acessar o serviço com escopo
                                 using (var scope = _serviceScopeFactory.CreateScope())
                                 {
                                     var repository = scope.ServiceProvider.GetRequiredService<ITransactionRepository>();
-                                    // Persistir a transação no banco de dados
                                     await repository.AddAsync(transaction);
                                 }
                                 
-                                // Notificar que uma mensagem foi recebida
                                 OnMessageReceived?.Invoke(this, transaction);
                             }
                         }
                     }
                     catch (ConsumeException)
                     {
-                        // Continuar tentando consumir mensagens mesmo se ocorrer uma falha
                         await Task.Delay(1000, cancellationToken);
                     }
                 }
