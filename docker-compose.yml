@@ -91,6 +91,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: cashflow-worker
+    restart: always
     depends_on:
       - postgres
       - kafka

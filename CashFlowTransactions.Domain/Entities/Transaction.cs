@@ -44,19 +44,31 @@ namespace CashFlowTransactions.Domain.Entities
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Construtor para Entity Framework
         public Transaction()
         {
+            TransactionDate = DateTime.UtcNow;
         }
 
-        public Transaction(decimal amount, TransactionType type, DateTime transactionDate, string? description = null, string? origin = null)
+        public Transaction(decimal amount, TransactionType type, DateTime? transactionDate = null, string? description = null, string? origin = null)
         {
-            Amount          = amount;
-            Type            = type;
-            TransactionDate = transactionDate;
-            Description     = description;
-            Origin          = origin;
-            CreatedAt       = DateTime.UtcNow;
+            Amount = amount;
+            Type = type;
+            
+            if (transactionDate == null || transactionDate.Value.Date != DateTime.UtcNow.Date)
+            {
+                TransactionDate = DateTime.UtcNow;
+            }
+            else
+            {
+                // Converter para UTC se não for
+                TransactionDate = transactionDate.Value.Kind != DateTimeKind.Utc 
+                    ? DateTime.SpecifyKind(transactionDate.Value, DateTimeKind.Utc) 
+                    : transactionDate.Value;
+            }
+            
+            Description = description;
+            Origin = origin;
+            CreatedAt = DateTime.UtcNow;
         }
     }
 }

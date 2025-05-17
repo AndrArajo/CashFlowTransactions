@@ -21,7 +21,6 @@ namespace CashFlowTransactions.Application.Services
 
         public async Task<Transaction> RegisterAsync(Transaction transaction)
         {
-            // Depois publica no Kafka
             await _publisher.PublishAsync(transaction);
             
             return transaction;
