@@ -59,6 +59,56 @@ services:
     networks:
       - cashflow-network
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cashflow-api
+    depends_on:
+      - postgres
+      - kafka
+    ports:
+      - "5000:80"
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - APP_TYPE=api
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-cashflow}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_TOPIC=${KAFKA_TOPIC:-transactions}
+      - KAFKA_GROUP_ID=${KAFKA_GROUP_ID:-transaction-consumer-group}
+      - KAFKA_AUTO_OFFSET_RESET=${KAFKA_AUTO_OFFSET_RESET:-earliest}
+    networks:
+      - cashflow-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cashflow-worker
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - APP_TYPE=worker
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-cashflow}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_TOPIC=${KAFKA_TOPIC:-transactions}
+      - KAFKA_GROUP_ID=${KAFKA_GROUP_ID:-transaction-consumer-group}
+      - KAFKA_AUTO_OFFSET_RESET=${KAFKA_AUTO_OFFSET_RESET:-earliest}
+    networks:
+      - cashflow-network
+
 
 networks:
   cashflow-network:

@@ -32,7 +32,7 @@ namespace CashFlowTransactions.Application.Services
             return await _repository.GetAllAsync();
         }
 
-        public async Task<Transaction> GetByIdAsync(int id)
+        public async Task<Transaction?> GetByIdAsync(int id)
         {
             return await _repository.GetByIdAsync(id);
         }

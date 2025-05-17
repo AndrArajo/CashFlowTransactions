@@ -4,8 +4,9 @@ using CashFlowTransactions.Infra.IoC;
 using CashFlowTransactions.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
+using Microsoft.OpenApi.Models;
 
-// Carregar variáveis do arquivo .env se existir
+// Carregar variáveis do arquivo .env se existir (para desenvolvimento local)
 if (File.Exists(".env"))
 {
     Env.Load();
@@ -21,31 +22,56 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables()
+    .AddEnvironmentVariables() // As variáveis de ambiente têm prioridade
     .AddUserSecrets<Program>(optional: true);
 
-if (Env.GetBool("LOADED", false))
-{
-    // Configuração do banco de dados
-    builder.Configuration["ConnectionStrings:DefaultConnection"] = 
-        $"Host={Env.GetString("DB_HOST", "localhost")};" +
-        $"Port={Env.GetString("DB_PORT", "5432")};" +
-        $"Database={Env.GetString("POSTGRES_DB", "cashflow")};" +
-        $"Username={Env.GetString("POSTGRES_USER", "postgres")};" +
-        $"Password={Env.GetString("POSTGRES_PASSWORD", "postgres")}";
+// Configuração do banco de dados usando variáveis de ambiente ou valores das configurações
+var dbHost = builder.Configuration["DB_HOST"] ?? Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+var dbPort = builder.Configuration["DB_PORT"] ?? Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
+var dbName = builder.Configuration["POSTGRES_DB"] ?? Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "cashflow";
+var dbUser = builder.Configuration["POSTGRES_USER"] ?? Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres";
+var dbPassword = builder.Configuration["POSTGRES_PASSWORD"] ?? Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "postgres";
 
-    // Configuração do Kafka
-    builder.Configuration["Kafka:BootstrapServers"] = Env.GetString("KAFKA_BOOTSTRAP_SERVERS", "localhost:29092");
-    builder.Configuration["Kafka:Topic"] = Env.GetString("KAFKA_TOPIC", "transactions");
-    builder.Configuration["Kafka:GroupId"] = Env.GetString("KAFKA_GROUP_ID", "transaction-consumer-group");
-    builder.Configuration["Kafka:AutoOffsetReset"] = Env.GetString("KAFKA_AUTO_OFFSET_RESET", "earliest");
-}
+// Configurau00e7u00e3o da string de conexu00e3o
+var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword}";
+builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+
+Console.WriteLine($"Configurau00e7u00e3o do banco de dados: {connectionString}");
+
+// Configuração do Kafka usando variáveis de ambiente ou valores das configurações
+var kafkaBootstrapServers = builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] ?? 
+                           Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? 
+                           "localhost:29092";
+var kafkaTopic = builder.Configuration["KAFKA_TOPIC"] ?? 
+                Environment.GetEnvironmentVariable("KAFKA_TOPIC") ?? 
+                "transactions";
+var kafkaGroupId = builder.Configuration["KAFKA_GROUP_ID"] ?? 
+                 Environment.GetEnvironmentVariable("KAFKA_GROUP_ID") ?? 
+                 "transaction-consumer-group";
+var kafkaAutoOffsetReset = builder.Configuration["KAFKA_AUTO_OFFSET_RESET"] ?? 
+                         Environment.GetEnvironmentVariable("KAFKA_AUTO_OFFSET_RESET") ?? 
+                         "earliest";
+
+builder.Configuration["Kafka:BootstrapServers"] = kafkaBootstrapServers;
+builder.Configuration["Kafka:Topic"] = kafkaTopic;
+builder.Configuration["Kafka:GroupId"] = kafkaGroupId;
+builder.Configuration["Kafka:AutoOffsetReset"] = kafkaAutoOffsetReset;
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+
+// Configurar Swagger/OpenAPI
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "CashFlow Transactions API",
+        Version = "v1",
+        Description = "API para gerenciamento de transações financeiras"
+    });
+});
 
 // Registrar serviços de aplicação
 builder.Services.AddScoped<TransactionService>();
@@ -85,10 +111,17 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CashFlow Transactions API v1"));
 }
 
-app.UseHttpsRedirection();
+// Usar HTTPS Redirection apenas se não estivermos rodando em Docker
+if (!string.IsNullOrEmpty(builder.Configuration["UseHttpsRedirection"]) && 
+    builder.Configuration["UseHttpsRedirection"].ToLower() == "true")
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthorization();
 app.UseCors("AllowAll");
 

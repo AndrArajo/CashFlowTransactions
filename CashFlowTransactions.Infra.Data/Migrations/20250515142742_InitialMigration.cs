@@ -12,6 +12,10 @@ namespace CashFlowTransactions.Infra.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql(@"
+                DROP TABLE IF EXISTS transactions CASCADE;
+            ");
+            
             migrationBuilder.CreateTable(
                 name: "transactions",
                 columns: table => new

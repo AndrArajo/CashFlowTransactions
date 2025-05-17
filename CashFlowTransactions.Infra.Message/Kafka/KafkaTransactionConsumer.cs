@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace CashFlowTransactions.Infra.Message.Kafka
 {
@@ -18,27 +19,38 @@ namespace CashFlowTransactions.Infra.Message.Kafka
         private readonly string _topic;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<KafkaTransactionConsumer>? _logger;
 
-        public event EventHandler<Transaction> OnMessageReceived;
+        public event EventHandler<Transaction>? OnMessageReceived;
 
-        public KafkaTransactionConsumer(IConfiguration config, IServiceScopeFactory serviceScopeFactory)
+        public KafkaTransactionConsumer(IConfiguration config, IServiceScopeFactory serviceScopeFactory, ILogger<KafkaTransactionConsumer>? logger = null)
         {
             _configuration = config ?? throw new ArgumentNullException(nameof(config));
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+            _logger = logger;
+            
+            var bootstrapServers = config["Kafka:BootstrapServers"] ?? "localhost:9092";
+            var groupId = config["Kafka:GroupId"] ?? "transaction-consumer-group";
+            var autoOffsetResetValue = config["Kafka:AutoOffsetReset"];
             
             var consumerConfig = new ConsumerConfig
             {
-                BootstrapServers = config["Kafka:BootstrapServers"],
-                GroupId = config["Kafka:GroupId"],
-                AutoOffsetReset = ParseAutoOffsetReset(config["Kafka:AutoOffsetReset"]),
+                BootstrapServers = bootstrapServers,
+                GroupId = groupId,
+                AutoOffsetReset = ParseAutoOffsetReset(autoOffsetResetValue),
                 EnableAutoCommit = true
             };
 
             _consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
-            _topic = config["Kafka:Topic"];
+            _topic = config["Kafka:Topic"] ?? "transactions";
+            
+            if (string.IsNullOrEmpty(_topic))
+            {
+                throw new ArgumentException("Kafka:Topic configuration is missing or empty");
+            }
         }
 
-        private AutoOffsetReset ParseAutoOffsetReset(string value)
+        private AutoOffsetReset ParseAutoOffsetReset(string? value)
         {
             // Tratar o valor considerando case insensitive
             return value?.ToLower() switch
@@ -81,8 +93,10 @@ namespace CashFlowTransactions.Infra.Message.Kafka
                             }
                         }
                     }
-                    catch (ConsumeException)
+                    catch (ConsumeException ex)
                     {
+                        // Registrar o erro usando logger
+                        _logger?.LogError(ex, "Erro ao consumir mensagem do Kafka: {Message}", ex.Message);
                         await Task.Delay(1000, cancellationToken);
                     }
                 }

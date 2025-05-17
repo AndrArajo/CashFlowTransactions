@@ -18,13 +18,21 @@ namespace CashFlowTransactions.Infra.Message.Kafka
 
         public KafkaTransactionPublisher(IConfiguration config)
         {
+            if (config == null) throw new ArgumentNullException(nameof(config));
+            
+            var bootstrapServers = config["Kafka:BootstrapServers"] ?? "localhost:9092";
             var configKafka = new ProducerConfig
             {
-                BootstrapServers = config["Kafka:BootstrapServers"]
+                BootstrapServers = bootstrapServers
             };
 
             _producer = new ProducerBuilder<Null, string>(configKafka).Build();
-            _topic = config["Kafka:Topic"];
+            _topic = config["Kafka:Topic"] ?? "transactions";
+            
+            if (string.IsNullOrEmpty(_topic))
+            {
+                throw new ArgumentException("Kafka:Topic configuration is missing or empty");
+            }
         }
 
         public async Task PublishAsync(Transaction transaction)
@@ -36,7 +44,8 @@ namespace CashFlowTransactions.Infra.Message.Kafka
             }
             catch (Exception ex)
             {
-                throw;
+                // Registrar o erro e relançar
+                throw new Exception($"Error publishing message to Kafka: {ex.Message}", ex);
             }
         }
     }

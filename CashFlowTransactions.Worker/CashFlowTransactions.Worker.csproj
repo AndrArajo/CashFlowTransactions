@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-CashFlowTransactions.Worker-8c957e3a-f705-452d-9d25-c0ad83eb1205</UserSecretsId>
@@ -10,8 +10,8 @@
   <ItemGroup>
     <PackageReference Include="Confluent.Kafka" Version="2.10.0" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0-preview.5.24302.12">
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -23,3 +23,4 @@
     <ProjectReference Include="..\CashFlowTransactions.Infra.Message\CashFlowTransactions.Infra.Message.csproj" />
   </ItemGroup>
 </Project>
+
