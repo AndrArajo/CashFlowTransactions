@@ -21,14 +21,14 @@ namespace CashFlowTransactions.Application.Services
             _repository = repository;
         }
 
-        public async Task<Transaction> RegisterAsync(Transaction transaction)
+        public async Task<(Transaction transaction, string messageId)> RegisterAsync(Transaction transaction)
         {
-            await _publisher.PublishAsync(transaction);
+            var messageId = await _publisher.PublishAsync(transaction);
             
-            return transaction;
+            return (transaction, messageId);
         }
 
-        public async Task<Transaction> RegisterAsync(CreateTransactionDto createDto)
+        public async Task<(Transaction transaction, string messageId)> RegisterAsync(CreateTransactionDto createDto)
         {
             // Criar a transação usando o construtor da entidade que já trata a conversão UTC
             var transaction = new Transaction(
@@ -39,9 +39,9 @@ namespace CashFlowTransactions.Application.Services
                 createDto.Origin
             );
 
-            await _publisher.PublishAsync(transaction);
+            var messageId = await _publisher.PublishAsync(transaction);
             
-            return transaction;
+            return (transaction, messageId);
         }
 
         public async Task<IEnumerable<Transaction>> GetAllAsync()

@@ -2,6 +2,7 @@ using CashFlowTransactions.Application.Services;
 using CashFlowTransactions.Domain.Interfaces;
 using CashFlowTransactions.Infra.IoC;
 using CashFlowTransactions.Infra.Data.Context;
+using CashFlowTransactions.API.Filters;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
 using Microsoft.OpenApi.Models;
@@ -60,6 +61,10 @@ builder.Configuration["Kafka:AutoOffsetReset"] = kafkaAutoOffsetReset;
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ApiExceptionFilter>();
+});
 builder.Services.AddEndpointsApiExplorer();
 
 // Configurar Swagger/OpenAPI

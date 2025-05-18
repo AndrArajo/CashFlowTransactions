@@ -7,8 +7,8 @@ namespace CashFlowTransactions.Application.Services
 {
     public interface ITransactionService
     {
-        Task<Transaction> RegisterAsync(Transaction transaction);
-        Task<Transaction> RegisterAsync(CreateTransactionDto createDto);
+        Task<(Transaction transaction, string messageId)> RegisterAsync(Transaction transaction);
+        Task<(Transaction transaction, string messageId)> RegisterAsync(CreateTransactionDto createDto);
         Task<IEnumerable<Transaction>> GetAllAsync();
         Task<Transaction?> GetByIdAsync(int id);
         Task<PaginatedResponseDto<TransactionDto>> GetTransactionsAsync(TransactionFilterDto filter);

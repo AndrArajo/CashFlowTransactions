@@ -18,6 +18,10 @@ namespace CashFlowTransactions.Domain.Entities
         [Column("id")]
         public int Id { get; set; }
 
+        [MaxLength(100)]
+        [Column("message_id")]
+        public string? MessageId { get; set; }
+
         [MaxLength(200)]
         [Column("description")]
         public string? Description { get; set; }

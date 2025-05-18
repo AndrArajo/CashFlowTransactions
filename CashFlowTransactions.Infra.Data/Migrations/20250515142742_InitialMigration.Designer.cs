@@ -53,6 +53,10 @@ namespace CashFlowTransactions.Infra.Data.Migrations
                     b.Property<int>("type")
                         .HasColumnType("integer");
 
+                    b.Property<string>("message_id")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.HasKey("id");
 
                     b.ToTable("transactions", (string)null);

@@ -21,6 +21,11 @@ namespace CashFlowTransactions.Infra.Data.Context
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).HasColumnName("id").UseIdentityColumn();
                 
+                entity.Property(e => e.MessageId)
+                    .HasColumnName("message_id")
+                    .HasMaxLength(100)
+                    .IsRequired(false);
+                    
                 entity.Property(e => e.Amount)
                     .HasColumnName("amount")
                     .HasColumnType("decimal(18,2)")

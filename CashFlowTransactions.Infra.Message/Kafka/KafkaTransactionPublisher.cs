@@ -35,12 +35,19 @@ namespace CashFlowTransactions.Infra.Message.Kafka
             }
         }
 
-        public async Task PublishAsync(Transaction transaction)
+        public async Task<string> PublishAsync(Transaction transaction)
         {
             try
             {
+                string messageId = Guid.NewGuid().ToString();
+                
+                transaction.MessageId = messageId;
+                
                 var message = JsonConvert.SerializeObject(transaction);
-                await _producer.ProduceAsync(_topic, new Message<Null, string> { Value = message });
+                
+                _producer.Produce(_topic, new Message<Null, string> { Value = message });
+                
+                return messageId;
             }
             catch (Exception ex)
             {

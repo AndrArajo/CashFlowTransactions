@@ -9,6 +9,6 @@ namespace CashFlowTransactions.Domain.Interfaces
 {
     public interface ITransactionQueuePublisher
     {
-        Task PublishAsync(Transaction transaction);
+        Task<string> PublishAsync(Transaction transaction);
     }
 }

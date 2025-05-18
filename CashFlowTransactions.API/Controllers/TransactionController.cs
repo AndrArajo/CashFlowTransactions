@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using CashFlowTransactions.Application.DTOs;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using System.Net;
+using CashFlowTransactions.API.Models;
 
 namespace CashFlowTransactions.API.Controllers
 {
@@ -27,7 +29,7 @@ namespace CashFlowTransactions.API.Controllers
         /// Registra uma nova transação financeira e a envia para o Kafka
         /// </summary>
         /// <param name="createDto">Dados da transação</param>
-        /// <returns>Resultado da operação</returns>
+        /// <returns>Resultado da operação com o ID da mensagem no Kafka</returns>
         [HttpPost]
         public async Task<IActionResult> RegisterTransaction([FromBody] CreateTransactionDto createDto)
         {
@@ -35,27 +37,26 @@ namespace CashFlowTransactions.API.Controllers
                 return BadRequest("Transação inválida");
 
             // Usar o serviço que já faz a conversão correta
-            var savedTransaction = await _transactionService.RegisterAsync(createDto);
+            var (savedTransaction, messageId) = await _transactionService.RegisterAsync(createDto);
             
-            // Criar DTO manualmente para retorno
-            var transactionDto = new TransactionDto
-            {
-                Id = savedTransaction.Id,
-                Description = savedTransaction.Description,
-                Amount = savedTransaction.Amount,
-                Type = savedTransaction.Type,
-                Origin = savedTransaction.Origin,
-                TransactionDate = savedTransaction.TransactionDate,
-                CreatedAt = savedTransaction.CreatedAt
+            // Retornar apenas o UUID da mensagem do Kafka
+            var result = new 
+            { 
+                MessageId = messageId
             };
             
-            return CreatedAtAction(nameof(GetTransactionById), new { id = savedTransaction.Id }, transactionDto);
+            var response = ApiResponse<object>.Ok(result, $"Transação registrada com sucesso");
+            return CreatedAtAction(nameof(GetTransactionById), new { id = savedTransaction.Id }, response);
         }
 
         /// <summary>
         /// Obtém todas as transações
         /// </summary>
         [HttpGet]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<TransactionDto>>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<TransactionDto>>), 404)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<TransactionDto>>), 500)]
+
         public async Task<ActionResult<IEnumerable<TransactionDto>>> GetAllTransactions()
         {
             var transactions = await _transactionService.GetAllAsync();
@@ -71,23 +72,19 @@ namespace CashFlowTransactions.API.Controllers
                 CreatedAt = t.CreatedAt
             });
             
-            return Ok(transactionDtos);
+            var response = ApiResponse<IEnumerable<TransactionDto>>.Ok(transactionDtos, $"Transações obtidas com sucesso");
+            return Ok(response);
         }
 
-        /// <summary>
-        /// Obtém transações com paginação e filtros
-        /// </summary>
-        [HttpGet("paged")]
-        public async Task<ActionResult<PaginatedResponseDto<TransactionDto>>> GetPagedTransactions([FromQuery] TransactionFilterDto filter)
-        {
-            var transactions = await _transactionService.GetTransactionsAsync(filter);
-            return Ok(transactions);
-        }
 
         /// <summary>
         /// Obtém transações com paginação simples
         /// </summary>
         [HttpGet("paginated")]
+        [ProducesResponseType(typeof(ApiResponse<PaginatedResponseDto<TransactionDto>>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<PaginatedResponseDto<TransactionDto>>), 404)]
+        [ProducesResponseType(typeof(ApiResponse<PaginatedResponseDto<TransactionDto>>), 500)]
+
         public async Task<ActionResult<PaginatedResponseDto<TransactionDto>>> GetPaginatedTransactions(
             [FromQuery] int page = 1, 
             [FromQuery] int size = 10)
@@ -99,7 +96,7 @@ namespace CashFlowTransactions.API.Controllers
                 
                 var (Items, TotalCount, TotalPages) = await _transactionService.GetPaginatedTransactionsAsync(page, size);
                 
-                var response = new PaginatedResponseDto<TransactionDto>(
+                var paginatedResult = new PaginatedResponseDto<TransactionDto>(
                     items: Items,
                     pageNumber: page,
                     pageSize: size,
@@ -107,12 +104,14 @@ namespace CashFlowTransactions.API.Controllers
                     totalPages: TotalPages
                 );
                 
+                var response = ApiResponse<PaginatedResponseDto<TransactionDto>>.Ok(paginatedResult, $"Transações paginadas obtidas com sucesso");
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao buscar transações paginadas");
-                return StatusCode(500, "Erro interno do servidor");
+                _logger.LogError(ex, "Erro ao obter transações paginadas");
+                var errorResponse = ApiResponse<PaginatedResponseDto<TransactionDto>>.Error("Erro interno do servidor");
+                return StatusCode(500, errorResponse);
             }
         }
 
@@ -120,6 +119,10 @@ namespace CashFlowTransactions.API.Controllers
         /// Obtém uma transação pelo ID
         /// </summary>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ApiResponse<TransactionDto>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<TransactionDto>), 404)]
+        [ProducesResponseType(typeof(ApiResponse<TransactionDto>), 500)]
+
         public async Task<ActionResult<TransactionDto>> GetTransactionById(int id)
         {
             var transaction = await _transactionService.GetByIdAsync(id);
@@ -137,8 +140,8 @@ namespace CashFlowTransactions.API.Controllers
                 TransactionDate = transaction.TransactionDate,
                 CreatedAt = transaction.CreatedAt
             };
-            
-            return Ok(transactionDto);
+            var response = ApiResponse<TransactionDto>.Ok(transactionDto, $"Transação obtida com sucesso");
+            return Ok(response);
         }
     }
 } 
