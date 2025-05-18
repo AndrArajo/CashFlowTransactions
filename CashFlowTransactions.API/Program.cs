@@ -73,9 +73,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Registrar serviços de aplicação
-builder.Services.AddScoped<TransactionService>();
-
 // Registrar as dependências do projeto de IoC
 builder.Services.AddDependencyInjection(builder.Configuration);
 

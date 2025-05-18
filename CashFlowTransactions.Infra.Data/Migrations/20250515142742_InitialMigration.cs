@@ -27,7 +27,7 @@ namespace CashFlowTransactions.Infra.Data.Migrations
                     type = table.Column<int>(type: "integer", nullable: false),
                     origin = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     transaction_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    created_at  = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {

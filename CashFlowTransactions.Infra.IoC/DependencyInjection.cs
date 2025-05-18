@@ -6,6 +6,7 @@ using CashFlowTransactions.Infra.Data.Repositories;
 using CashFlowTransactions.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using System;
+using CashFlowTransactions.Application.Services;
 
 namespace CashFlowTransactions.Infra.IoC
 {
@@ -24,6 +25,9 @@ namespace CashFlowTransactions.Infra.IoC
                         npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
                     });
             });
+
+            // Registrar serviços de aplicação
+            services.AddScoped<ITransactionService, TransactionService>();
 
             // Registrar repositórios
             services.AddScoped<ITransactionRepository, TransactionRepository>();

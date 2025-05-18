@@ -73,7 +73,7 @@ builder.Logging.AddConsole();
 
 var host = builder.Build();
 
-// Aplicar migrações do banco de dados
+
 using (var scope = host.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

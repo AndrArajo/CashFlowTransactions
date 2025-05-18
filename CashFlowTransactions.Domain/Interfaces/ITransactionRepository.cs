@@ -13,6 +13,7 @@ namespace CashFlowTransactions.Domain.Interfaces
         Task<Transaction> AddAsync(Transaction transaction);
         Task<IEnumerable<Transaction>> GetAllAsync();
         Task<Transaction?> GetByIdAsync(int id);
-    
+        IQueryable<Transaction> GetAll();
+        Task<(IEnumerable<Transaction> Items, int TotalCount)> GetPaginatedAsync(int pageNumber, int pageSize);
     }
 }

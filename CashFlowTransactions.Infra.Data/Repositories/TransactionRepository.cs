@@ -32,13 +32,31 @@ namespace CashFlowTransactions.Infra.Data.Repositories
             return await _context.Transactions.ToListAsync();
         }
 
-   
+        public IQueryable<Transaction> GetAll()
+        {
+            return _context.Transactions.AsQueryable();
+        }
 
         public async Task<Transaction?> GetByIdAsync(int id)
         {
             return await _context.Transactions.FindAsync(id);
         }
 
-   
+        public async Task<(IEnumerable<Transaction> Items, int TotalCount)> GetPaginatedAsync(int pageNumber, int pageSize)
+        {
+            pageNumber = pageNumber <= 0 ? 1 : pageNumber;
+            pageSize = pageSize <= 0 ? 10 : pageSize;
+
+            var totalCount = await _context.Transactions.CountAsync();
+
+            var items = await _context.Transactions
+                .OrderByDescending(t => t.TransactionDate)
+                .ThenByDescending(t => t.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 } 
