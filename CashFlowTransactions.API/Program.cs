@@ -110,7 +110,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-logger.LogInformation("Iniciando a aplicação...");
+Console.WriteLine("Iniciando a aplicação...");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
