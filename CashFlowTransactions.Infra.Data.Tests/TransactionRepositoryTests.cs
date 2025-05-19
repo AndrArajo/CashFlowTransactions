@@ -202,13 +202,13 @@ namespace CashFlowTransactions.Infra.Data.Tests
             using var context = new ApplicationDbContext(_options);
             var repository = new TransactionRepository(context, _cacheService);
             
-            var keysAntes = _cacheService.GetAllKeys().ToList();
+            // Limpar o cache antes do teste
+            await _cacheService.RemoveAsync("transactions_page_1_size_2");
             
             // Act - Solicitar página 1 com 2 itens por página
             var (items, totalCount) = await repository.GetPaginatedAsync(1, 2);
             
-            var keysApos = _cacheService.GetAllKeys().ToList();
-            
+            // Fazer segunda chamada para garantir cache
             var (items2, totalCount2) = await repository.GetPaginatedAsync(1, 2);
             
             // Assert
@@ -225,11 +225,13 @@ namespace CashFlowTransactions.Infra.Data.Tests
             Assert.Equal(items.Count(), items2.Count());
             Assert.Equal(totalCount, totalCount2);
             
-            // Verificar se o cache contém alguma chave relacionada às transações paginadas
-            bool temChavePaginada = _cacheService.GetAllKeys()
-                .Any(k => k.StartsWith("transactions_page_"));
-                
-            Assert.True(temChavePaginada, "Nenhuma chave de paginação encontrada no cache");
+            // Verificar explicitamente se a chave específica existe no cache
+            var exists = await _cacheService.KeyExistsAsync("transactions_page_1_size_2");
+            Assert.True(exists, "A chave de cache 'transactions_page_1_size_2' deveria existir após a chamada de GetPaginatedAsync");
+            
+            // Mostrar todas as chaves disponíveis no cache
+            var allKeys = string.Join(", ", _cacheService.GetAllKeys());
+            Console.WriteLine($"Chaves disponíveis no cache: {allKeys}");
         }
         
         [Fact]

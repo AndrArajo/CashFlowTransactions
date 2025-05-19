@@ -143,22 +143,7 @@ namespace CashFlowTransactions.Infra.Data.Repositories
             string cacheKey = $"transactions_page_{pageNumber}_size_{pageSize}";
             _logger?.LogInformation($"Usando chave de cache: {cacheKey}");
 
-            // Tentar obter do cache primeiro, mas com verificação adicional
-            bool forceRefresh = false;
-            var cacheExists = await _cacheService.KeyExistsAsync(cacheKey);
-            
-            if (!cacheExists && dbCount > 0)
-            {
-                _logger?.LogInformation($"Chave {cacheKey} não existe no cache e há dados no banco. Forçando nova consulta.");
-                forceRefresh = true;
-            }
-            
-            if (forceRefresh)
-            {
-                _logger?.LogInformation("Ignorando cache e buscando diretamente do banco de dados");
-                return await GetPaginatedDirectFromDatabaseAsync(pageNumber, pageSize);
-            }
-
+            // Simplificando a lógica para sempre usar o cache ou criar se não existir
             var result = await _cacheService.GetOrCreateAsync(
                 cacheKey,
                 async () => 
@@ -190,12 +175,21 @@ namespace CashFlowTransactions.Infra.Data.Repositories
             var resultItems = result.Item1 ?? Enumerable.Empty<Transaction>();
             var resultCount = result.Item2;
             
+            // Verificar existência da chave após a criação
+            var keyExists = await _cacheService.KeyExistsAsync(cacheKey);
+            _logger?.LogInformation($"A chave '{cacheKey}' existe no cache: {keyExists}");
+            
             // Verificar inconsistência entre o cache e o banco
             if (!resultItems.Any() && dbCount > 0)
             {
                 _logger?.LogWarning("Cache inconsistente! Retornou itens vazios quando há dados no banco. Forçando consulta direta.");
                 await _cacheService.RemoveAsync(cacheKey);
-                return await GetPaginatedDirectFromDatabaseAsync(pageNumber, pageSize);
+                var directResult = await GetPaginatedDirectFromDatabaseAsync(pageNumber, pageSize);
+                
+                // Armazenar resultado direto no cache
+                await _cacheService.SetAsync(cacheKey, directResult, _cacheExpiration);
+                
+                return directResult;
             }
             
             _logger?.LogInformation($"Retornando {(resultItems as ICollection<Transaction>)?.Count ?? 0} transações");
