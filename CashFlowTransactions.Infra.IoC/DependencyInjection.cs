@@ -7,7 +7,7 @@ using CashFlowTransactions.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using System;
 using CashFlowTransactions.Application.Services;
-
+using CashFlowTransactions.Infra.CrossCutting;
 namespace CashFlowTransactions.Infra.IoC
 {
     public static class DependencyInjection
@@ -28,6 +28,8 @@ namespace CashFlowTransactions.Infra.IoC
 
             // Registrar serviços de aplicação
             services.AddScoped<ITransactionService, TransactionService>();
+
+            services.AddCrossCuttingServices();
 
             // Registrar repositórios
             services.AddScoped<ITransactionRepository, TransactionRepository>();
