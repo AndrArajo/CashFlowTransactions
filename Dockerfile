@@ -11,6 +11,10 @@ COPY CashFlowTransactions.Infra.Data/*.csproj ./CashFlowTransactions.Infra.Data/
 COPY CashFlowTransactions.Infra.IoC/*.csproj ./CashFlowTransactions.Infra.IoC/
 COPY CashFlowTransactions.Infra.Message/*.csproj ./CashFlowTransactions.Infra.Message/
 COPY CashFlowTransactions.Worker/*.csproj ./CashFlowTransactions.Worker/
+COPY CashFlowTransactions.Domain.Tests/*.csproj ./CashFlowTransactions.Domain.Tests/
+COPY CashFlowTransactions.Application.Tests/*.csproj ./CashFlowTransactions.Application.Tests/
+COPY CashFlowTransactions.Infra.Data.Tests/*.csproj ./CashFlowTransactions.Infra.Data.Tests/
+COPY CashFlowTransactions.Infra.CrossCutting/*.csproj ./CashFlowTransactions.Infra.CrossCutting/
 
 # Restaurar pacotes
 RUN dotnet restore

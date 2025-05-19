@@ -59,6 +59,20 @@ services:
     networks:
       - cashflow-network
 
+  redis:
+    image: redis:alpine
+    container_name: cashflow-redis-transactions
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis}
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    networks:
+      - cashflow-network
+
   api:
     build:
       context: .
@@ -67,6 +81,7 @@ services:
     depends_on:
       - postgres
       - kafka
+      - redis
     ports:
       - "5000:80"
     environment:
@@ -83,6 +98,7 @@ services:
       - KAFKA_TOPIC=${KAFKA_TOPIC:-transactions}
       - KAFKA_GROUP_ID=${KAFKA_GROUP_ID:-transaction-consumer-group}
       - KAFKA_AUTO_OFFSET_RESET=${KAFKA_AUTO_OFFSET_RESET:-earliest}
+      - REDIS_CONNECTION=redis:6379
     networks:
       - cashflow-network
 
@@ -95,6 +111,7 @@ services:
     depends_on:
       - postgres
       - kafka
+      - redis
     environment:
       - DOTNET_ENVIRONMENT=Development
       - APP_TYPE=worker
@@ -107,6 +124,7 @@ services:
       - KAFKA_TOPIC=${KAFKA_TOPIC:-transactions}
       - KAFKA_GROUP_ID=${KAFKA_GROUP_ID:-transaction-consumer-group}
       - KAFKA_AUTO_OFFSET_RESET=${KAFKA_AUTO_OFFSET_RESET:-earliest}
+      - REDIS_CONNECTION=redis:6379
     networks:
       - cashflow-network
 
@@ -116,4 +134,5 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-data: 
+  postgres-data:
+  redis-data: 

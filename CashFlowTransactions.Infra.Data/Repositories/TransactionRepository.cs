@@ -73,16 +73,16 @@ namespace CashFlowTransactions.Infra.Data.Repositories
                 cacheKey,
                 async () => 
                 {
-                    var totalCount = await _context.Transactions.CountAsync();
+            var totalCount = await _context.Transactions.CountAsync();
 
-                    var items = await _context.Transactions
-                        .OrderByDescending(t => t.TransactionDate)
-                        .ThenByDescending(t => t.CreatedAt)
-                        .Skip((pageNumber - 1) * pageSize)
-                        .Take(pageSize)
-                        .ToListAsync();
+            var items = await _context.Transactions
+                .OrderByDescending(t => t.TransactionDate)
+                .ThenByDescending(t => t.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
-                    return (items, totalCount);
+            return (items, totalCount);
                 },
                 _cacheExpiration);
         }

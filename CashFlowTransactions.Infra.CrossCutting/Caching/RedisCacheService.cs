@@ -10,7 +10,7 @@ namespace CashFlowTransactions.Infra.CrossCutting.Caching
     public class RedisCacheService : ICacheService
     {
         private readonly IDatabase _db;
-        private readonly TimeSpan _defaultExpiration = TimeSpan.FromMinutes(5); // TTL de 5 minutos
+        private readonly TimeSpan _defaultExpiration = TimeSpan.FromMinutes(1); 
         private readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new ConcurrentDictionary<string, SemaphoreSlim>();
 
         public RedisCacheService()

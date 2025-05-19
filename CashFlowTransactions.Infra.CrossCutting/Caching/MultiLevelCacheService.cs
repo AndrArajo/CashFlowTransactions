@@ -9,7 +9,7 @@ namespace CashFlowTransactions.Infra.CrossCutting.Caching
     {
         private readonly IMemoryCache _memoryCache;
         private readonly RedisCacheService _redisCache;
-        private readonly TimeSpan _memoryCacheExpiration = TimeSpan.FromMinutes(2); // Tempo menor para cache em memória
+        private readonly TimeSpan _memoryCacheExpiration = TimeSpan.FromSeconds(30);
         private readonly Random _random = new Random();
 
         public MultiLevelCacheService(IMemoryCache memoryCache, RedisCacheService redisCache)
