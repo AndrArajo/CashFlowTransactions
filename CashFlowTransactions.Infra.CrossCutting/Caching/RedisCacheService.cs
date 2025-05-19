@@ -66,8 +66,7 @@ namespace CashFlowTransactions.Infra.CrossCutting.Caching
             }
             finally
             {
-                // Liberar o bloqueio se nós o adquirimos
-                // Importante: só liberar se o token for igual ao nosso (para evitar liberar bloqueio de outra instância)
+
                 if (lockAcquired)
                 {
                     var script = @"

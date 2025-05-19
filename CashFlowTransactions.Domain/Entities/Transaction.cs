@@ -58,16 +58,28 @@ namespace CashFlowTransactions.Domain.Entities
             Amount = amount;
             Type = type;
             
-            if (transactionDate == null || transactionDate.Value.Date != DateTime.UtcNow.Date)
+            if (transactionDate.HasValue)
             {
-                TransactionDate = DateTime.UtcNow;
+                // Converter a data para UTC se não for UTC
+                if (transactionDate.Value.Kind == DateTimeKind.Unspecified)
+                {
+                    // Considerar que é hora local e converter para UTC
+                    TransactionDate = DateTime.SpecifyKind(transactionDate.Value, DateTimeKind.Local).ToUniversalTime();
+                }
+                else if (transactionDate.Value.Kind == DateTimeKind.Local)
+                {
+                    // Converter de Local para UTC
+                    TransactionDate = transactionDate.Value.ToUniversalTime();
+                }
+                else
+                {
+                    // Já é UTC, usar como está
+                    TransactionDate = transactionDate.Value;
+                }
             }
             else
             {
-                // Converter para UTC se não for
-                TransactionDate = transactionDate.Value.Kind != DateTimeKind.Utc 
-                    ? DateTime.SpecifyKind(transactionDate.Value, DateTimeKind.Utc) 
-                    : transactionDate.Value;
+                TransactionDate = DateTime.UtcNow;
             }
             
             Description = description;

@@ -15,5 +15,8 @@ namespace CashFlowTransactions.Domain.Interfaces
         Task<Transaction?> GetByIdAsync(int id);
         IQueryable<Transaction> GetAll();
         Task<(IEnumerable<Transaction> Items, int TotalCount)> GetPaginatedAsync(int pageNumber, int pageSize);
+        
+        // Método para buscar paginação diretamente do banco de dados, sem usar cache
+        Task<(IEnumerable<Transaction> Items, int TotalCount)> GetPaginatedDirectFromDatabaseAsync(int pageNumber, int pageSize);
     }
 }

@@ -7,6 +7,7 @@ using CashFlowTransactions.Application.DTOs;
 using CashFlowTransactions.Domain.Entities;
 using CashFlowTransactions.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CashFlowTransactions.Application.Services
 {
@@ -14,11 +15,16 @@ namespace CashFlowTransactions.Application.Services
     {
         private readonly ITransactionQueuePublisher _publisher;
         private readonly ITransactionRepository _repository;
+        private readonly ILogger<TransactionService>? _logger;
 
-        public TransactionService(ITransactionQueuePublisher publisher, ITransactionRepository repository)
+        public TransactionService(
+            ITransactionQueuePublisher publisher, 
+            ITransactionRepository repository,
+            ILogger<TransactionService>? logger = null)
         {
             _publisher = publisher;
             _repository = repository;
+            _logger = logger;
         }
 
         public async Task<(Transaction transaction, string messageId)> RegisterAsync(Transaction transaction)
@@ -118,14 +124,48 @@ namespace CashFlowTransactions.Application.Services
 
         public async Task<(IEnumerable<TransactionDto> Items, int TotalCount, int TotalPages)> GetPaginatedTransactionsAsync(int pageNumber, int pageSize)
         {
+            _logger?.LogInformation($"Service: Iniciando busca paginada com page={pageNumber}, size={pageSize}");
+            
             pageNumber = pageNumber <= 0 ? 1 : pageNumber;
             pageSize = pageSize <= 0 || pageSize > 10 ? 10 : pageSize;
             
+            _logger?.LogInformation($"Service: Valores normalizados - page={pageNumber}, size={pageSize}");
+            
             var (items, totalCount) = await _repository.GetPaginatedAsync(pageNumber, pageSize);
+            
+            _logger?.LogInformation($"Service: Repository retornou: totalCount={totalCount}");
             
             int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             
-            var transactionDtos = items.Select(t => new TransactionDto
+            // Verificar se os itens são nulos e retornar uma lista vazia em vez de nulo
+            var transactionItems = items ?? Enumerable.Empty<Transaction>();
+            
+            // Convertendo para lista para avaliar a contagem
+            var transactionsList = transactionItems.ToList();
+            _logger?.LogInformation($"Service: Número de transações recebidas: {transactionsList.Count}");
+            
+            if (transactionsList.Count == 0 && totalCount > 0)
+            {
+                _logger?.LogWarning("Service: Repository retornou totalCount > 0 mas sem itens");
+                // Tentar novamente sem cache
+                _logger?.LogInformation("Service: Tentando buscar diretamente do banco de dados");
+                
+                try
+                {
+                    var directItems = await _repository.GetPaginatedDirectFromDatabaseAsync(pageNumber, pageSize);
+                    transactionsList = directItems.Items.ToList();
+                    totalCount = directItems.TotalCount;
+                    totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                    
+                    _logger?.LogInformation($"Service: Busca direta: {transactionsList.Count} itens, total {totalCount}");
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Service: Erro ao tentar buscar diretamente do banco");
+                }
+            }
+            
+            var transactionDtos = transactionsList.Select(t => new TransactionDto
             {
                 Id = t.Id,
                 Description = t.Description,
@@ -135,6 +175,8 @@ namespace CashFlowTransactions.Application.Services
                 TransactionDate = t.TransactionDate,
                 CreatedAt = t.CreatedAt
             }).ToList();
+            
+            _logger?.LogInformation($"Service: Retornando {transactionDtos.Count} DTOs, totalCount={totalCount}, totalPages={totalPages}");
             
             return (transactionDtos, totalCount, totalPages);
         }

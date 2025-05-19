@@ -59,21 +59,43 @@ namespace CashFlowTransactions.API.Controllers
 
         public async Task<ActionResult<IEnumerable<TransactionDto>>> GetAllTransactions()
         {
-            var transactions = await _transactionService.GetAllAsync();
-            
-            var transactionDtos = transactions.Select(t => new TransactionDto
+            try 
             {
-                Id = t.Id,
-                Description = t.Description,
-                Amount = t.Amount,
-                Type = t.Type,
-                Origin = t.Origin,
-                TransactionDate = t.TransactionDate,
-                CreatedAt = t.CreatedAt
-            });
-            
-            var response = ApiResponse<IEnumerable<TransactionDto>>.Ok(transactionDtos, $"Transações obtidas com sucesso");
-            return Ok(response);
+                _logger.LogInformation("Controller: Iniciando GetAllTransactions");
+                
+                var transactions = await _transactionService.GetAllAsync();
+                
+                _logger.LogInformation($"Controller: GetAllTransactions recebeu {(transactions?.Count() ?? 0)} transações do serviço");
+                
+                if (transactions == null || !transactions.Any())
+                {
+                    _logger.LogInformation("Controller: Nenhuma transação encontrada");
+                    var emptyResponse = ApiResponse<IEnumerable<TransactionDto>>.Ok(
+                        Enumerable.Empty<TransactionDto>(), 
+                        "Nenhuma transação encontrada");
+                    return Ok(emptyResponse);
+                }
+                
+                var transactionDtos = transactions.Select(t => new TransactionDto
+                {
+                    Id = t.Id,
+                    Description = t.Description,
+                    Amount = t.Amount,
+                    Type = t.Type,
+                    Origin = t.Origin,
+                    TransactionDate = t.TransactionDate,
+                    CreatedAt = t.CreatedAt
+                });
+                
+                var response = ApiResponse<IEnumerable<TransactionDto>>.Ok(transactionDtos, $"Transações obtidas com sucesso");
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter todas as transações");
+                var errorResponse = ApiResponse<IEnumerable<TransactionDto>>.Error("Erro interno do servidor");
+                return StatusCode(500, errorResponse);
+            }
         }
 
 
@@ -91,10 +113,36 @@ namespace CashFlowTransactions.API.Controllers
         {
             try
             {
+                _logger.LogInformation($"Controller: Iniciando GetPaginatedTransactions com page={page}, size={size}");
+                
                 // Limitar o tamanho máximo a 10
                 size = size > 10 ? 10 : size;
+                _logger.LogInformation($"Controller: Tamanho ajustado para size={size}");
                 
                 var (Items, TotalCount, TotalPages) = await _transactionService.GetPaginatedTransactionsAsync(page, size);
+                
+                _logger.LogInformation($"Controller: GetPaginatedTransactions recebeu {Items?.Count() ?? 0} itens, " + 
+                    $"TotalCount={TotalCount}, TotalPages={TotalPages}");
+                
+                if (Items == null || !Items.Any())
+                {
+                    _logger.LogInformation("Controller: Nenhuma transação paginada encontrada");
+                    
+                    // Criar resposta vazia mas bem formatada
+                    var emptyPagination = new PaginatedResponseDto<TransactionDto>(
+                        items: Enumerable.Empty<TransactionDto>(),
+                        pageNumber: page,
+                        pageSize: size,
+                        totalCount: 0,
+                        totalPages: 0
+                    );
+                    
+                    var emptyResponse = ApiResponse<PaginatedResponseDto<TransactionDto>>.Ok(
+                        emptyPagination, 
+                        "Nenhuma transação encontrada");
+                    
+                    return Ok(emptyResponse);
+                }
                 
                 var paginatedResult = new PaginatedResponseDto<TransactionDto>(
                     items: Items,
