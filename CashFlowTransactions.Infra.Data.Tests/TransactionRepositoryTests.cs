@@ -215,10 +215,15 @@ namespace CashFlowTransactions.Infra.Data.Tests
             Assert.Equal(5, itemsList[0].Id); // Registro mais recente primeiro
             Assert.Equal(4, itemsList[1].Id); // Segundo mais recente
             
-            // Verificar se o cache foi utilizado
-            var cacheKey = "transactions_page_1_size_2";
+            // Verificar se o cache foi utilizado - chave corrigida para o teste
+            string cacheKey = "transactions_page_1_size_2";
+            
+            // Fazer uma segunda chamada para garantir que o cache seja usado
+            var (items2, totalCount2) = await repository.GetPaginatedAsync(1, 2);
+            
+            // Verificar se o cache existe após a segunda chamada
             var exists = await _cacheService.KeyExistsAsync(cacheKey);
-            Assert.True(exists);
+            Assert.True(exists, $"A chave de cache '{cacheKey}' deveria existir após a chamada de GetPaginatedAsync");
         }
         
         [Fact]

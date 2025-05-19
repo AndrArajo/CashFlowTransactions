@@ -25,32 +25,6 @@ O CashFlowTransactions tem como objetivo principal registrar e processar transa�
    cp CashFlowTransactions.API/appsettings.example.json CashFlowTransactions.API/appsettings.json
    cp CashFlowTransactions.Worker/appsettings.example.json CashFlowTransactions.Worker/appsettings.json
    ```
-   
-   Exemplo de arquivo `.env`:
-   ```
-   POSTGRES_USER=postgres
-   POSTGRES_PASSWORD=postgres
-   POSTGRES_DB=cashflow
-   KAFKA_TOPIC=transactions
-   REDIS_INSTANCE_NAME=CashFlowTransactions:
-   ```
-
-3. Ajuste as variáveis de configuração nos arquivos `appsettings.json` conforme necessário (caso não esteja usando o `.env`):
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Host=postgres;Port=5432;Database=cashflow;Username=postgres;Password=postgres",
-       "Redis": "redis:6379"
-     },
-     "Kafka": {
-       "BootstrapServers": "kafka:29092",
-       "Topic": "transactions"
-     },
-     "Redis": {
-       "InstanceName": "CashFlowTransactions:"
-     }
-   }
-   ```
 
 ### Executando
 Para iniciar a aplicação com Docker Compose:
@@ -75,36 +49,11 @@ docker-compose down
 
 ### Configuração
 1. Clone o repositório
-2. Crie um arquivo `.env` na raiz do projeto com as variáveis de ambiente necessárias:
-   ```
-   POSTGRES_USER=postgres
-   POSTGRES_PASSWORD=postgres
-   POSTGRES_DB=cashflow
-   KAFKA_TOPIC=transactions
-   REDIS_INSTANCE_NAME=CashFlowTransactions:
-   ```
-
+2. Crie um arquivo `.env` na raiz do projeto
 3. Copie os arquivos de configuração:
    ```bash
    cp CashFlowTransactions.API/appsettings.example.json CashFlowTransactions.API/appsettings.json
    cp CashFlowTransactions.Worker/appsettings.example.json CashFlowTransactions.Worker/appsettings.json
-   ```
-   
-4. Ajuste as variáveis de configuração nos arquivos `appsettings.json` para apontar para suas instâncias locais:
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Host=localhost;Port=5432;Database=cashflow;Username=postgres;Password=postgres",
-       "Redis": "localhost:6379"
-     },
-     "Kafka": {
-       "BootstrapServers": "localhost:29092",
-       "Topic": "transactions"
-     },
-     "Redis": {
-       "InstanceName": "CashFlowTransactions:"
-     }
-   }
    ```
 
 ### Restaurar pacotes e construir
