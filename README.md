@@ -75,12 +75,22 @@ docker-compose down
 
 ### Configuração
 1. Clone o repositório
-2. Copie o arquivo `appsettings.example.json` para `appsettings.json`
+2. Crie um arquivo `.env` na raiz do projeto com as variáveis de ambiente necessárias:
+   ```
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=postgres
+   POSTGRES_DB=cashflow
+   KAFKA_TOPIC=transactions
+   REDIS_INSTANCE_NAME=CashFlowTransactions:
+   ```
+
+3. Copie os arquivos de configuração:
    ```bash
    cp CashFlowTransactions.API/appsettings.example.json CashFlowTransactions.API/appsettings.json
    cp CashFlowTransactions.Worker/appsettings.example.json CashFlowTransactions.Worker/appsettings.json
    ```
-3. Ajuste as variáveis de configuração nos arquivos `appsettings.json` para apontar para suas instâncias locais:
+   
+4. Ajuste as variáveis de configuração nos arquivos `appsettings.json` para apontar para suas instâncias locais:
    ```json
    {
      "ConnectionStrings": {
