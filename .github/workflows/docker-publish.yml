@@ -41,19 +41,11 @@ jobs:
         id: meta-api
         uses: docker/metadata-action@v4
         with:
-          images: andrarajo/cashflow-api
+          images: andrarajo/cashflow-transaction
           tags: |
             type=raw,value=latest
             type=sha,format=short
       
-      - name: Extract metadata for Docker (Worker)
-        id: meta-worker
-        uses: docker/metadata-action@v4
-        with:
-          images: andrarajo/cashflow-worker
-          tags: |
-            type=raw,value=latest
-            type=sha,format=short
       
       - name: Build and push
         uses: docker/build-push-action@v4
@@ -63,9 +55,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ steps.meta-api.outputs.tags }}
-            ${{ steps.meta-worker.outputs.tags }}
           labels: |
             ${{ steps.meta-api.outputs.labels }}
-            ${{ steps.meta-worker.outputs.labels }}
-          cache-from: type=registry,ref=andrarajo/cashflow-api:buildcache
-          cache-to: type=registry,ref=andrarajo/cashflow-api:buildcache,mode=max 
+          cache-from: type=registry,ref=andrarajo/cashflow-transaction:buildcache
+          cache-to: type=registry,ref=andrarajo/cashflow-transaction:buildcache,mode=max 
