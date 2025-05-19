@@ -20,7 +20,10 @@ namespace CashFlowTransactions.Infra.Data.Tests
             }
 
             var value = await factory();
+            
+            // Garantir que o valor seja armazenado no cache, mesmo que seja null
             _cache[key] = value!;
+            
             return value;
         }
 
@@ -53,6 +56,12 @@ namespace CashFlowTransactions.Infra.Data.Tests
         public Task<bool> KeyExistsAsync(string key)
         {
             return Task.FromResult(_cache.ContainsKey(key));
+        }
+        
+        // Método de depuração para ver todas as chaves no cache
+        public IEnumerable<string> GetAllKeys()
+        {
+            return _cache.Keys;
         }
     }
 } 

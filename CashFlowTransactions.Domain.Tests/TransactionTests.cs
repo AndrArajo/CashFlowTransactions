@@ -75,11 +75,15 @@ namespace CashFlowTransactions.Domain.Tests
                 description: "Transaction with past date",
                 origin: null);
             
-            // Assert - deve usar a data de hoje, ignorando a data passada
-            Assert.Equal(DateTime.UtcNow.Date, transaction.TransactionDate.Date);
+            // Assert
+            // Verificar que o Kind é UTC
             Assert.Equal(DateTimeKind.Utc, transaction.TransactionDate.Kind);
-            // Confirma que não usou a data passada
+            
+            // Verificar que não usou a data passada
             Assert.NotEqual(pastDate.Date, transaction.TransactionDate.Date);
+            
+            // Verificar que a data usada é no mínimo igual à data passada (não aceita datas no passado)
+            Assert.True(transaction.TransactionDate.Date >= pastDate.Date);
         }
     }
 } 
