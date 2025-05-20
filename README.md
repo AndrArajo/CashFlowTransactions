@@ -18,7 +18,7 @@ O projeto utiliza GitHub Actions para integração contínua e entrega contínua
 
 - **Integração Contínua**: Testes automatizados são executados em cada push e pull request
 - **Entrega Contínua**: Builds bem-sucedidos na branch main são automaticamente publicados no DockerHub
-- **Imagem Docker**: Disponível em andrarajo/cashflow-dailybalance
+- **Imagem Docker**: Disponível em andrarajo/cashflow-transaction
 ## Executando com Docker
 
 ### Pré-requisitos
