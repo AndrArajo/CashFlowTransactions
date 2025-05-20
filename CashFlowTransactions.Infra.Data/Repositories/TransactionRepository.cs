@@ -160,8 +160,7 @@ namespace CashFlowTransactions.Infra.Data.Repositories
                     }
 
                     var items = await _context.Transactions
-                        .OrderByDescending(t => t.TransactionDate)
-                        .ThenByDescending(t => t.CreatedAt)
+                        .OrderByDescending(t => t.Id)
                         .Skip((pageNumber - 1) * pageSize)
                         .Take(pageSize)
                         .ToListAsync();

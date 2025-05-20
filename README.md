@@ -12,6 +12,13 @@ O CashFlowTransactions tem como objetivo principal registrar e processar transa�
 - Utiliza cache multinível (memória + Redis) para otimizar o desempenho das consultas
 - Implementa padrões de arquitetura limpa para melhor manutenibilidade e escalabilidade
 
+## CI/CD
+
+O projeto utiliza GitHub Actions para integração contínua e entrega contínua:
+
+- **Integração Contínua**: Testes automatizados são executados em cada push e pull request
+- **Entrega Contínua**: Builds bem-sucedidos na branch main são automaticamente publicados no DockerHub
+- **Imagem Docker**: Disponível em andrarajo/cashflow-dailybalance
 ## Executando com Docker
 
 ### Pré-requisitos
@@ -124,6 +131,45 @@ A aplicação segue os princípios de Clean Architecture:
   - **IoC**: Configuração de injeção de dependência
 - **API**: Controllers, middlewares e configuração da aplicação
 - **Worker**: Serviço para processamento assíncrono de transações
+
+## Estrutura de Pastas
+
+- **CashFlowTransactions.Domain**: 
+  - Entidades e regras de negócio
+  - Interfaces de repositórios
+  - Enums e definições de domínio
+
+- **CashFlowTransactions.Application**: 
+  - Serviços de aplicação
+  - DTOs e interfaces
+  - Mapeamentos
+  - Serviços agendados
+
+- **CashFlowTransactions.Infra.Data**: 
+  - Implementações de repositórios
+  - Contexto de banco de dados 
+  - Configurações de entidades
+  - Migrações
+
+- **CashFlowTransactions.Infra.CrossCutting**: 
+  - Serviços transversais
+  - Cache
+  - Logging
+  - Utilidades
+
+- **CashFlowTransactions.Infra.IoC**: 
+  - Configuração de injeção de dependências
+  - Registro de serviços
+
+- **CashFlowTransactions.API**: 
+  - Controllers
+  - Configuração da aplicação
+  - Middlewares
+  - Filtros
+
+- **CashFlowTransactions.*.Tests**: 
+  - Testes unitários
+  - Mocks e fixtures
 
 ## Testes
 
