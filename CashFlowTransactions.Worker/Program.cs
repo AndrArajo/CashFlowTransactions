@@ -1,9 +1,9 @@
 using CashFlowTransactions.Infra.IoC;
 using CashFlowTransactions.Infra.Data.Context;
-using CashFlowTransactions.Worker;
 using Microsoft.EntityFrameworkCore;
 using CashFlowTransactions.Domain.Interfaces;
 using CashFlowTransactions.Infra.Message.Kafka;
+using CashFlowTransactions.Infra.Message.Rabbitmq;
 using Microsoft.Extensions.DependencyInjection;
 using DotNetEnv;
 
@@ -39,40 +39,28 @@ builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
 
 Console.WriteLine($"Configuração do banco de dados: {connectionString}");
 
-// Configuração do Kafka usando variáveis de ambiente ou valores das configurações
-var kafkaBootstrapServers = builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] ?? 
-                           Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? 
-                           "localhost:29092";
-var kafkaTopic = builder.Configuration["KAFKA_TOPIC"] ?? 
-                Environment.GetEnvironmentVariable("KAFKA_TOPIC") ?? 
-                "transactions";
-var kafkaGroupId = builder.Configuration["KAFKA_GROUP_ID"] ?? 
-                 Environment.GetEnvironmentVariable("KAFKA_GROUP_ID") ?? 
-                 "transaction-consumer-group";
-var kafkaAutoOffsetReset = builder.Configuration["KAFKA_AUTO_OFFSET_RESET"] ?? 
-                         Environment.GetEnvironmentVariable("KAFKA_AUTO_OFFSET_RESET") ?? 
-                         "earliest";
-
-builder.Configuration["Kafka:BootstrapServers"] = kafkaBootstrapServers;
-builder.Configuration["Kafka:Topic"] = kafkaTopic;
-builder.Configuration["Kafka:GroupId"] = kafkaGroupId;
-builder.Configuration["Kafka:AutoOffsetReset"] = kafkaAutoOffsetReset;
-
+// Registrar serviços através do DependencyInjection (que inclui detecção automática de mensageria)
 builder.Services.AddDependencyInjection(builder.Configuration);
 
+// Determinar qual consumer registrar baseado no sistema de mensageria detectado
+var rabbitmqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? builder.Configuration["RabbitMQ:HostName"];
+var messageProvider = Environment.GetEnvironmentVariable("MESSAGE_PROVIDER") ?? builder.Configuration["MessageProvider"];
 
-builder.Services.AddHostedService<KafkaTransactionConsumer>(sp => 
+if (!string.IsNullOrEmpty(rabbitmqHost) || messageProvider?.ToLower() == "rabbitmq")
 {
-    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
-    var configuration = sp.GetRequiredService<IConfiguration>();
-    return new KafkaTransactionConsumer(configuration, scopeFactory);
-});
+    Console.WriteLine("Usando RabbitMQ como sistema de mensageria");
+    builder.Services.AddHostedService<RabbitmqTransactionConsumer>();
+}
+else
+{
+    Console.WriteLine("Usando Kafka como sistema de mensageria");
+    builder.Services.AddHostedService<KafkaTransactionConsumer>();
+}
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 var host = builder.Build();
-
 
 using (var scope = host.Services.CreateScope())
 {

@@ -15,9 +15,8 @@ namespace CashFlowTransactions.Worker
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // O consumer já é um background service e possui sua própria implementação
-            // de ExecuteAsync, então não precisamos chamá-lo diretamente
-            await Task.CompletedTask;
+            // Iniciar o consumer
+            await _consumer.ConsumeAsync(stoppingToken);
         }
 
         private void HandleTransactionReceived(object sender, Transaction transaction)

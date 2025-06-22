@@ -20,14 +20,14 @@ namespace CashFlowTransactions.Infra.Message.Kafka
         {
             if (config == null) throw new ArgumentNullException(nameof(config));
             
-            var bootstrapServers = config["Kafka:BootstrapServers"] ?? "localhost:9092";
+            var bootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? config["Kafka:BootstrapServers"] ?? "localhost:9092";
             var configKafka = new ProducerConfig
             {
                 BootstrapServers = bootstrapServers
             };
 
             _producer = new ProducerBuilder<Null, string>(configKafka).Build();
-            _topic = config["Kafka:Topic"] ?? "transactions";
+            _topic = Environment.GetEnvironmentVariable("KAFKA_TOPIC") ?? config["Kafka:Topic"] ?? "transactions";
             
             if (string.IsNullOrEmpty(_topic))
             {

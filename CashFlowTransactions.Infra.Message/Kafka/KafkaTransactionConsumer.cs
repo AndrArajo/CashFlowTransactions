@@ -29,9 +29,9 @@ namespace CashFlowTransactions.Infra.Message.Kafka
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             _logger = logger;
             
-            var bootstrapServers = config["Kafka:BootstrapServers"] ?? "localhost:9092";
-            var groupId = config["Kafka:GroupId"] ?? "transaction-consumer-group";
-            var autoOffsetResetValue = config["Kafka:AutoOffsetReset"];
+            var bootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BOOTSTRAP_SERVERS") ?? config["Kafka:BootstrapServers"] ?? "localhost:9092";
+            var groupId = Environment.GetEnvironmentVariable("KAFKA_GROUP_ID") ?? config["Kafka:GroupId"] ?? "transaction-consumer-group";
+            var autoOffsetResetValue = Environment.GetEnvironmentVariable("KAFKA_AUTO_OFFSET_RESET") ?? config["Kafka:AutoOffsetReset"];
             
             var consumerConfig = new ConsumerConfig
             {
@@ -42,7 +42,7 @@ namespace CashFlowTransactions.Infra.Message.Kafka
             };
 
             _consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
-            _topic = config["Kafka:Topic"] ?? "transactions";
+            _topic = Environment.GetEnvironmentVariable("KAFKA_TOPIC") ?? config["Kafka:Topic"] ?? "transactions";
             
             if (string.IsNullOrEmpty(_topic))
             {
