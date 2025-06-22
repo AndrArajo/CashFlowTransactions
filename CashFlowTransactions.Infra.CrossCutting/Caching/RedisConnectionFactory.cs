@@ -11,13 +11,27 @@ namespace CashFlowTransactions.Infra.CrossCutting.Caching
         {
             lazyConnection = new Lazy<ConnectionMultiplexer>(() =>
             {
-                var host = Environment.GetEnvironmentVariable("REDIS_HOST") ?? "localhost";
-                var port = Environment.GetEnvironmentVariable("REDIS_PORT") ?? "6379";
+                string connectionString;
+                
+                // Primeiro tentar REDIS_CONNECTION (formato: host:port)
+                var redisConnection = Environment.GetEnvironmentVariable("REDIS_CONNECTION");
+                if (!string.IsNullOrEmpty(redisConnection))
+                {
+                    connectionString = redisConnection;
+                }
+                else
+                {
+                    // Fallback para REDIS_HOST e REDIS_PORT separados
+                    var host = Environment.GetEnvironmentVariable("REDIS_HOST") ?? "localhost";
+                    var port = Environment.GetEnvironmentVariable("REDIS_PORT") ?? "6379";
+                    connectionString = $"{host}:{port}";
+                }
+
                 var password = Environment.GetEnvironmentVariable("REDIS_PASSWORD") ?? "redis";
 
                 var configurationOptions = new ConfigurationOptions
                 {
-                    EndPoints = { $"{host}:{port}" },
+                    EndPoints = { connectionString },
                     Password = password,
                     AbortOnConnectFail = false,
                     ConnectRetry = 3

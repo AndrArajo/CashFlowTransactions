@@ -28,6 +28,12 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - cashflow-network
 
@@ -99,6 +105,9 @@ services:
       - KAFKA_GROUP_ID=${KAFKA_GROUP_ID:-transaction-consumer-group}
       - KAFKA_AUTO_OFFSET_RESET=${KAFKA_AUTO_OFFSET_RESET:-earliest}
       - REDIS_CONNECTION=redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
     networks:
       - cashflow-network
 
@@ -109,9 +118,12 @@ services:
     container_name: cashflow-worker
     restart: always
     depends_on:
-      - postgres
-      - kafka
-      - redis
+      postgres:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       - DOTNET_ENVIRONMENT=Development
       - APP_TYPE=worker
@@ -125,6 +137,9 @@ services:
       - KAFKA_GROUP_ID=${KAFKA_GROUP_ID:-transaction-consumer-group}
       - KAFKA_AUTO_OFFSET_RESET=${KAFKA_AUTO_OFFSET_RESET:-earliest}
       - REDIS_CONNECTION=redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
     networks:
       - cashflow-network
 

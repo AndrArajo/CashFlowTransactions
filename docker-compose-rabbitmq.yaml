@@ -64,10 +64,8 @@ services:
       - RABBITMQ_PASSWORD=guest
       - RABBITMQ_VHOST=/
       - RABBITMQ_QUEUE_NAME=${RABBITMQ_QUEUE_NAME:-transactions}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
       - REDIS_CONNECTION=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
     networks:
       - cashflow-network
 
@@ -94,10 +92,8 @@ services:
       - RABBITMQ_PASSWORD=guest
       - RABBITMQ_VHOST=/
       - RABBITMQ_QUEUE_NAME=${RABBITMQ_QUEUE_NAME:-transactions}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
       - REDIS_CONNECTION=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis}
     networks:
       - cashflow-network
 

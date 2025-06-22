@@ -69,7 +69,30 @@ namespace CashFlowTransactions.Infra.Message.Kafka
 
         public async Task ConsumeAsync(CancellationToken cancellationToken)
         {
-            _consumer.Subscribe(_topic);
+            var maxRetries = 10;
+            var retryDelay = TimeSpan.FromSeconds(5);
+            
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    _consumer.Subscribe(_topic);
+                    break; // Se conseguiu se inscrever, sai do loop
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Tentativa {Attempt}/{MaxRetries} de conectar ao Kafka falhou. Tentando novamente em {Delay}s...", 
+                        attempt, maxRetries, retryDelay.TotalSeconds);
+                    
+                    if (attempt == maxRetries)
+                    {
+                        _logger?.LogError(ex, "Falha ao conectar ao Kafka após {MaxRetries} tentativas", maxRetries);
+                        throw;
+                    }
+                    
+                    await Task.Delay(retryDelay, cancellationToken);
+                }
+            }
 
             try
             {
