@@ -50,114 +50,69 @@ namespace CashFlowTransactions.API.Controllers
         }
 
         /// <summary>
-        /// Obtém todas as transações
+        /// Obtém transações com paginação e filtros
         /// </summary>
+        /// <param name="pageNumber">Número da página (padrão: 1)</param>
+        /// <param name="pageSize">Tamanho da página (padrão: 10, máximo: 100)</param>
+        /// <param name="startDate">Data inicial do filtro</param>
+        /// <param name="endDate">Data final do filtro</param>
+        /// <param name="type">Tipo da transação (Credit/Debit)</param>
+        /// <param name="minAmount">Valor mínimo</param>
+        /// <param name="maxAmount">Valor máximo</param>
+        /// <param name="description">Filtro por descrição (busca parcial)</param>
+        /// <param name="origin">Filtro por origem (busca parcial)</param>
+        /// <returns>Lista paginada de transações</returns>
         [HttpGet]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<TransactionDto>>), 200)]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<TransactionDto>>), 404)]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<TransactionDto>>), 500)]
-
-        public async Task<ActionResult<IEnumerable<TransactionDto>>> GetAllTransactions()
-        {
-            try 
-            {
-                _logger.LogInformation("Controller: Iniciando GetAllTransactions");
-                
-                var transactions = await _transactionService.GetAllAsync();
-                
-                _logger.LogInformation($"Controller: GetAllTransactions recebeu {(transactions?.Count() ?? 0)} transações do serviço");
-                
-                if (transactions == null || !transactions.Any())
-                {
-                    _logger.LogInformation("Controller: Nenhuma transação encontrada");
-                    var emptyResponse = ApiResponse<IEnumerable<TransactionDto>>.Ok(
-                        Enumerable.Empty<TransactionDto>(), 
-                        "Nenhuma transação encontrada");
-                    return Ok(emptyResponse);
-                }
-                
-                var transactionDtos = transactions.Select(t => new TransactionDto
-                {
-                    Id = t.Id,
-                    Description = t.Description,
-                    Amount = t.Amount,
-                    Type = t.Type,
-                    Origin = t.Origin,
-                    TransactionDate = t.TransactionDate,
-                    CreatedAt = t.CreatedAt
-                });
-                
-                var response = ApiResponse<IEnumerable<TransactionDto>>.Ok(transactionDtos, $"Transações obtidas com sucesso");
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erro ao obter todas as transações");
-                var errorResponse = ApiResponse<IEnumerable<TransactionDto>>.Error("Erro interno do servidor");
-                return StatusCode(500, errorResponse);
-            }
-        }
-
-
-        /// <summary>
-        /// Obtém transações com paginação simples
-        /// </summary>
-        [HttpGet("paginated")]
         [ProducesResponseType(typeof(ApiResponse<PaginatedResponseDto<TransactionDto>>), 200)]
         [ProducesResponseType(typeof(ApiResponse<PaginatedResponseDto<TransactionDto>>), 404)]
         [ProducesResponseType(typeof(ApiResponse<PaginatedResponseDto<TransactionDto>>), 500)]
-
-        public async Task<ActionResult<PaginatedResponseDto<TransactionDto>>> GetPaginatedTransactions(
-            [FromQuery] int page = 1, 
-            [FromQuery] int size = 10)
+        public async Task<ActionResult<PaginatedResponseDto<TransactionDto>>> GetTransactions(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null,
+            [FromQuery] Domain.Enums.TransactionType? type = null,
+            [FromQuery] decimal? minAmount = null,
+            [FromQuery] decimal? maxAmount = null,
+            [FromQuery] string? description = null,
+            [FromQuery] string? origin = null)
         {
-            try
+            try 
             {
-                _logger.LogInformation($"Controller: Iniciando GetPaginatedTransactions com page={page}, size={size}");
+                _logger.LogInformation($"Controller: Iniciando GetTransactions com page={pageNumber}, size={pageSize}");
                 
-                // Limitar o tamanho máximo a 10
-                size = size > 10 ? 10 : size;
-                _logger.LogInformation($"Controller: Tamanho ajustado para size={size}");
+                // Limitar o tamanho máximo
+                pageSize = pageSize > 100 ? 100 : pageSize;
+                pageSize = pageSize <= 0 ? 10 : pageSize;
+                pageNumber = pageNumber <= 0 ? 1 : pageNumber;
                 
-                var (Items, TotalCount, TotalPages) = await _transactionService.GetPaginatedTransactionsAsync(page, size);
-                
-                _logger.LogInformation($"Controller: GetPaginatedTransactions recebeu {Items?.Count() ?? 0} itens, " + 
-                    $"TotalCount={TotalCount}, TotalPages={TotalPages}");
-                
-                if (Items == null || !Items.Any())
+                var filter = new TransactionFilterDto
                 {
-                    _logger.LogInformation("Controller: Nenhuma transação paginada encontrada");
-                    
-                    // Criar resposta vazia mas bem formatada
-                    var emptyPagination = new PaginatedResponseDto<TransactionDto>(
-                        items: Enumerable.Empty<TransactionDto>(),
-                        pageNumber: page,
-                        pageSize: size,
-                        totalCount: 0,
-                        totalPages: 0
-                    );
-                    
-                    var emptyResponse = ApiResponse<PaginatedResponseDto<TransactionDto>>.Ok(
-                        emptyPagination, 
-                        "Nenhuma transação encontrada");
-                    
-                    return Ok(emptyResponse);
-                }
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    Type = type,
+                    MinAmount = minAmount,
+                    MaxAmount = maxAmount,
+                    Description = description,
+                    Origin = origin
+                };
                 
-                var paginatedResult = new PaginatedResponseDto<TransactionDto>(
-                    items: Items,
-                    pageNumber: page,
-                    pageSize: size,
-                    totalCount: TotalCount,
-                    totalPages: TotalPages
-                );
+                var paginatedResult = await _transactionService.GetTransactionsAsync(filter);
                 
-                var response = ApiResponse<PaginatedResponseDto<TransactionDto>>.Ok(paginatedResult, $"Transações paginadas obtidas com sucesso");
+                _logger.LogInformation($"Controller: GetTransactions recebeu {paginatedResult.Items?.Count() ?? 0} itens, " + 
+                    $"TotalCount={paginatedResult.TotalCount}, TotalPages={paginatedResult.TotalPages}");
+                
+                var response = ApiResponse<PaginatedResponseDto<TransactionDto>>.Ok(
+                    paginatedResult, 
+                    "Transações obtidas com sucesso");
+                
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao obter transações paginadas");
+                _logger.LogError(ex, "Erro ao obter transações");
                 var errorResponse = ApiResponse<PaginatedResponseDto<TransactionDto>>.Error("Erro interno do servidor");
                 return StatusCode(500, errorResponse);
             }
@@ -170,7 +125,6 @@ namespace CashFlowTransactions.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<TransactionDto>), 200)]
         [ProducesResponseType(typeof(ApiResponse<TransactionDto>), 404)]
         [ProducesResponseType(typeof(ApiResponse<TransactionDto>), 500)]
-
         public async Task<ActionResult<TransactionDto>> GetTransactionById(int id)
         {
             var transaction = await _transactionService.GetByIdAsync(id);

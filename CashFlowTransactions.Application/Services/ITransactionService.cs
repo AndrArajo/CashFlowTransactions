@@ -12,6 +12,5 @@ namespace CashFlowTransactions.Application.Services
         Task<IEnumerable<Transaction>> GetAllAsync();
         Task<Transaction?> GetByIdAsync(int id);
         Task<PaginatedResponseDto<TransactionDto>> GetTransactionsAsync(TransactionFilterDto filter);
-        Task<(IEnumerable<TransactionDto> Items, int TotalCount, int TotalPages)> GetPaginatedTransactionsAsync(int pageNumber, int pageSize);
     }
 } 
