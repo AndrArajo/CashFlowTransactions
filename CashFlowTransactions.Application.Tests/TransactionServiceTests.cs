@@ -167,13 +167,8 @@ namespace CashFlowTransactions.Application.Tests
                 .Setup(r => r.GetAll())
                 .Returns(filteredTransactions.AsQueryable());
                 
-            // Mock para a contagem
-            _repositoryMock
-                .Setup(r => r.GetPaginatedAsync(1, 10))
-                .ReturnsAsync((filteredTransactions, 2));
-            
             // Act
-            var result = await _service.GetPaginatedTransactionsAsync(1, 10);
+            var result = await _service.GetTransactionsAsync(filter);
             
             // Assert
             Assert.NotNull(result);
@@ -183,7 +178,7 @@ namespace CashFlowTransactions.Application.Tests
         }
         
         [Fact]
-        public async Task GetPaginatedTransactionsAsync_ShouldReturnPaginatedResults()
+        public async Task GetTransactionsAsync_ShouldReturnPaginatedResults()
         {
             // Arrange
             var transactions = new List<Transaction>
@@ -193,22 +188,28 @@ namespace CashFlowTransactions.Application.Tests
             };
             
             _repositoryMock
-                .Setup(r => r.GetPaginatedAsync(1, 10))
-                .ReturnsAsync((transactions, 2));
+                .Setup(r => r.GetAll())
+                .Returns(transactions.AsQueryable());
+                
+            var filter = new TransactionFilterDto
+            {
+                PageNumber = 1,
+                PageSize = 10
+            };
                 
             // Act
-            var (items, totalCount, totalPages) = await _service.GetPaginatedTransactionsAsync(1, 10);
+            var result = await _service.GetTransactionsAsync(filter);
             
             // Assert
-            Assert.NotNull(items);
-            Assert.Equal(2, items.Count());
-            Assert.Equal(2, totalCount);
-            Assert.Equal(1, totalPages);
-            _repositoryMock.Verify(r => r.GetPaginatedAsync(1, 10), Times.Once);
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Items.Count());
+            Assert.Equal(2, result.TotalCount);
+            Assert.Equal(1, result.TotalPages);
+            _repositoryMock.Verify(r => r.GetAll(), Times.Once);
         }
         
         [Fact]
-        public async Task GetPaginatedTransactionsAsync_WithInvalidPageNumber_ShouldUseDefaultValue()
+        public async Task GetTransactionsAsync_WithInvalidPageNumber_ShouldUseDefaultValue()
         {
             // Arrange
             var transactions = new List<Transaction> 
@@ -217,19 +218,26 @@ namespace CashFlowTransactions.Application.Tests
             };
             
             _repositoryMock
-                .Setup(r => r.GetPaginatedAsync(1, 10))
-                .ReturnsAsync((transactions, 1));
+                .Setup(r => r.GetAll())
+                .Returns(transactions.AsQueryable());
                 
-            // Act - Passando número de página inválido (0)
-            var (items, totalCount, totalPages) = await _service.GetPaginatedTransactionsAsync(0, 10);
+            var filter = new TransactionFilterDto
+            {
+                PageNumber = 0, // Número de página inválido
+                PageSize = 10
+            };
+                
+            // Act
+            var result = await _service.GetTransactionsAsync(filter);
             
             // Assert
-            Assert.Single(items); // Use Assert.Single ao invés de Assert.Equal(1, items.Count())
-            _repositoryMock.Verify(r => r.GetPaginatedAsync(1, 10), Times.Once); // Deve usar o valor padrão (1)
+            Assert.Single(result.Items);
+            Assert.Equal(1, result.PageNumber); // O filtro mantém o valor original, mas o serviço pode normalizar
+            _repositoryMock.Verify(r => r.GetAll(), Times.Once);
         }
         
         [Fact]
-        public async Task GetPaginatedTransactionsAsync_WithInvalidPageSize_ShouldUseDefaultValue()
+        public async Task GetTransactionsAsync_WithInvalidPageSize_ShouldUseDefaultValue()
         {
             // Arrange
             var transactions = new List<Transaction> 
@@ -238,15 +246,22 @@ namespace CashFlowTransactions.Application.Tests
             };
             
             _repositoryMock
-                .Setup(r => r.GetPaginatedAsync(1, 10))
-                .ReturnsAsync((transactions, 1));
+                .Setup(r => r.GetAll())
+                .Returns(transactions.AsQueryable());
                 
-            // Act - Passando tamanho de página inválido (0)
-            var (items, totalCount, totalPages) = await _service.GetPaginatedTransactionsAsync(1, 0);
+            var filter = new TransactionFilterDto
+            {
+                PageNumber = 1,
+                PageSize = 0 // Tamanho de página inválido
+            };
+                
+            // Act
+            var result = await _service.GetTransactionsAsync(filter);
             
             // Assert
-            Assert.Single(items); // Use Assert.Single ao invés de Assert.Equal(1, items.Count())
-            _repositoryMock.Verify(r => r.GetPaginatedAsync(1, 10), Times.Once); // Deve usar o valor padrão (10)
+            Assert.Single(result.Items);
+            Assert.Equal(1, result.PageSize); // O filtro mantém o valor original, mas o serviço pode normalizar
+            _repositoryMock.Verify(r => r.GetAll(), Times.Once);
         }
     }
 } 
