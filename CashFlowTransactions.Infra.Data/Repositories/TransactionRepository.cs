@@ -83,35 +83,11 @@ namespace CashFlowTransactions.Infra.Data.Repositories
 
         public IQueryable<Transaction> GetAll()
         {
-            // Primeiro verificar se existem transações no banco
-            var dbCount = _context.Transactions.Count();
-            _logger?.LogInformation($"Total de transações no banco (GetAll): {dbCount}");
-            
-            if (dbCount == 0)
-            {
-                _logger?.LogInformation("Nenhuma transação no banco, retornando queryable vazio");
-                return Enumerable.Empty<Transaction>().AsQueryable();
-            }
-            
-            // Para IQueryable, não podemos cache diretamente, mas podemos armazenar 
-            // os resultados após a materialização quando aplicado
-            var cachedTransactions = _cacheService.GetOrCreateAsync(
-                "transactions_all",
-                async () => {
-                    _logger?.LogInformation("Cache miss para todas as transações (GetAll), buscando do banco de dados");
-                    return await _context.Transactions.ToListAsync();
-                },
-                _cacheExpiration).GetAwaiter().GetResult();
-                
-            // Verificar se o cache está inconsistente
-            if ((cachedTransactions == null || !cachedTransactions.Any()) && dbCount > 0)
-            {
-                _logger?.LogWarning("Cache inconsistente! Retornou vazio quando há dados no banco (GetAll). Forçando atualização.");
-                // Buscar diretamente do banco
-                return _context.Transactions.AsQueryable();
-            }
-                
-            return cachedTransactions?.AsQueryable() ?? Enumerable.Empty<Transaction>().AsQueryable();
+            // Para IQueryable, sempre retornamos do Entity Framework para manter compatibilidade
+            // com operações assíncronas (CountAsync, ToListAsync, etc.)
+            // O cache será aplicado quando necessário nos métodos específicos
+            _logger?.LogInformation("GetAll: Retornando IQueryable do Entity Framework");
+            return _context.Transactions.AsQueryable();
         }
 
         public async Task<Transaction?> GetByIdAsync(int id)
