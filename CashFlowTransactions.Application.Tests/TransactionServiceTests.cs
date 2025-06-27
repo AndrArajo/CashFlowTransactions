@@ -241,7 +241,8 @@ namespace CashFlowTransactions.Application.Tests
             
             // Assert
             Assert.Single(result.Items);
-            Assert.Equal(0, result.PageNumber); // O filtro mantém o valor original
+            Assert.Equal(1, result.PageNumber); // Deve ser normalizado para 1
+            Assert.Equal(10, result.PageSize);
             _repositoryMock.Verify(r => r.GetAll(), Times.Once);
         }
         
@@ -272,7 +273,8 @@ namespace CashFlowTransactions.Application.Tests
             
             // Assert
             Assert.Single(result.Items);
-            Assert.Equal(0, result.PageSize); // O filtro mantém o valor original
+            Assert.Equal(1, result.PageNumber);
+            Assert.Equal(10, result.PageSize); // Deve ser normalizado para 10
             _repositoryMock.Verify(r => r.GetAll(), Times.Once);
         }
     }

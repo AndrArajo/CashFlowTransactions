@@ -62,6 +62,11 @@ namespace CashFlowTransactions.Application.Services
 
         public async Task<PaginatedResponseDto<TransactionDto>> GetTransactionsAsync(TransactionFilterDto filter)
         {
+            // Validar e normalizar valores de paginação
+            var pageNumber = filter.PageNumber <= 0 ? 1 : filter.PageNumber;
+            var pageSize = filter.PageSize <= 0 ? 10 : filter.PageSize;
+            pageSize = pageSize > 100 ? 100 : pageSize; // Limitar máximo
+            
             // Obter a queryable base
             var query = _repository.GetAll();
 
@@ -93,12 +98,12 @@ namespace CashFlowTransactions.Application.Services
 
             // Contar o total antes de paginar
             var totalCount = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalCount / (double)filter.PageSize);
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-            // Aplicar paginação
+            // Aplicar paginação usando valores normalizados
             var items = await query
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             // Mapear manualmente para DTOs
@@ -113,11 +118,11 @@ namespace CashFlowTransactions.Application.Services
                 CreatedAt = t.CreatedAt
             }).ToList();
 
-            // Retornar resultado paginado
+            // Retornar resultado paginado com valores normalizados
             return new PaginatedResponseDto<TransactionDto>(
                 transactionDtos,
-                filter.PageNumber,
-                filter.PageSize,
+                pageNumber,
+                pageSize,
                 totalCount,
                 totalPages);
         }
