@@ -30,6 +30,9 @@ RUN dotnet publish CashFlowTransactions.API/CashFlowTransactions.API.csproj -c R
 # Publicar o Worker
 RUN dotnet publish CashFlowTransactions.Worker/CashFlowTransactions.Worker.csproj -c Release -o /app/publish/worker
 
+# Publicar o GrpcService
+RUN dotnet publish CashFlowTransactions.GrpcService/CashFlowTransactions.GrpcService.csproj -c Release -o /app/publish/grpcservice
+
 # Imagem de runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
@@ -37,6 +40,7 @@ WORKDIR /app
 # Copiar publicações
 COPY --from=build /app/publish/api ./api
 COPY --from=build /app/publish/worker ./worker
+COPY --from=build /app/publish/grpcservice ./grpcservice
 
 # Copiar script de entrada
 COPY docker-entrypoint.sh /app/

@@ -8,11 +8,13 @@ if [ -d "/app" ]; then
     # Ambiente Docker
     WORKER_DIR="/app/worker"
     API_DIR="/app/api"
+    GRPCSERVICE_DIR="/app/grpcservice"
     echo "Executando em ambiente Docker"
 else
     # Ambiente Windows ou outro
     WORKER_DIR="./CashFlowTransactions.Worker"
     API_DIR="./CashFlowTransactions.API"
+    GRPCSERVICE_DIR="./CashFlowTransactions.GrpcService"
     echo "Executando em ambiente não-Docker (possivelmente Windows)"
 fi
 
@@ -67,6 +69,10 @@ elif [ "$APP_TYPE" = "worker" ]; then
     trap "kill_processes $worker_pids; exit" SIGINT SIGTERM
     
     wait
+elif [ "$APP_TYPE" = "grpcservice" ]; then
+    echo "Iniciando o GrpcService..."
+    cd /app/grpcservice
+    exec dotnet CashFlowTransactions.GrpcService.dll
 elif [ "$APP_TYPE" = "all" ]; then
     echo "Iniciando API e 10 Workers..."
     
@@ -93,6 +99,8 @@ elif [ "$APP_TYPE" = "all" ]; then
     
     echo "Iniciando API..."
     exec dotnet CashFlowTransactions.API.dll
+    echo "Iniciando GrpcService..."
+    exec dotnet CashFlowTransactions.GrpcService.dll
 else
     echo "Variável APP_TYPE não configurada corretamente. Use 'api', 'worker' ou 'all'"
     exit 1
