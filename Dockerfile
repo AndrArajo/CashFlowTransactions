@@ -5,6 +5,7 @@ WORKDIR /app
 COPY *.sln .
 # COPY global.json .
 COPY CashFlowTransactions.API/*.csproj ./CashFlowTransactions.API/
+COPY CashFlowTransactions.GrpcService/*.csproj ./CashFlowTransactions.GrpcService/
 COPY CashFlowTransactions.Application/*.csproj ./CashFlowTransactions.Application/
 COPY CashFlowTransactions.Domain/*.csproj ./CashFlowTransactions.Domain/
 COPY CashFlowTransactions.Infra.Data/*.csproj ./CashFlowTransactions.Infra.Data/
@@ -15,6 +16,7 @@ COPY CashFlowTransactions.Domain.Tests/*.csproj ./CashFlowTransactions.Domain.Te
 COPY CashFlowTransactions.Application.Tests/*.csproj ./CashFlowTransactions.Application.Tests/
 COPY CashFlowTransactions.Infra.Data.Tests/*.csproj ./CashFlowTransactions.Infra.Data.Tests/
 COPY CashFlowTransactions.Infra.CrossCutting/*.csproj ./CashFlowTransactions.Infra.CrossCutting/
+
 
 # Restaurar pacotes
 RUN dotnet restore
