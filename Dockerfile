@@ -3,7 +3,7 @@ WORKDIR /app
 
 # Copiar arquivos de configuração e solução
 COPY *.sln .
-COPY global.json .
+# COPY global.json .
 COPY CashFlowTransactions.API/*.csproj ./CashFlowTransactions.API/
 COPY CashFlowTransactions.Application/*.csproj ./CashFlowTransactions.Application/
 COPY CashFlowTransactions.Domain/*.csproj ./CashFlowTransactions.Domain/

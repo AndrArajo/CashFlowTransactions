@@ -1,11 +1,8 @@
-using CashFlowTransactions.Application.Services;
-using CashFlowTransactions.Domain.Interfaces;
+using CashFlowTransactions.GrpcService.Services;
 using CashFlowTransactions.Infra.IoC;
 using CashFlowTransactions.Infra.Data.Context;
-using CashFlowTransactions.API.Filters;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
-using Microsoft.OpenApi.Models;
 
 // Carregar variáveis do arquivo .env se existir (para desenvolvimento local)
 if (File.Exists(".env"))
@@ -33,10 +30,9 @@ var dbName = builder.Configuration["POSTGRES_DB"] ?? Environment.GetEnvironmentV
 var dbUser = builder.Configuration["POSTGRES_USER"] ?? Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres";
 var dbPassword = builder.Configuration["POSTGRES_PASSWORD"] ?? Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "postgres";
 
-// Configurau00e7u00e3o da string de conexu00e3o
+// Configuração da string de conexão
 var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword}";
 builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
-
 
 // Configuração do Kafka usando variáveis de ambiente ou valores das configurações
 var kafkaBootstrapServers = builder.Configuration["KAFKA_BOOTSTRAP_SERVERS"] ?? 
@@ -58,38 +54,10 @@ builder.Configuration["Kafka:GroupId"] = kafkaGroupId;
 builder.Configuration["Kafka:AutoOffsetReset"] = kafkaAutoOffsetReset;
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddControllers();
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add<ApiExceptionFilter>();
-});
-builder.Services.AddEndpointsApiExplorer();
-
-// Configurar Swagger/OpenAPI
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "CashFlow Transactions API",
-        Version = "v1",
-        Description = "API para gerenciamento de transações financeiras"
-    });
-});
+builder.Services.AddGrpc();
 
 // Registrar as dependências do projeto de IoC
 builder.Services.AddDependencyInjection(builder.Configuration);
-
-// Adicionar CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    });
-});
 
 var app = builder.Build();
 
@@ -109,29 +77,11 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-Console.WriteLine("Iniciando a aplicação...");
+Console.WriteLine("Iniciando o serviço gRPC...");
+
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CashFlow Transactions API v1"));
-}
-
-// Usar HTTPS Redirection apenas se não estivermos rodando em Docker
-if (!string.IsNullOrEmpty(builder.Configuration["UseHttpsRedirection"]) && 
-    builder.Configuration["UseHttpsRedirection"].ToLower() == "true")
-{
-    app.UseHttpsRedirection();
-}
-
-app.UseAuthorization();
-app.UseCors("AllowAll");
-
-app.MapControllers();
+app.MapGrpcService<GreeterService>();
+app.MapGrpcService<TransactionService>();
+app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

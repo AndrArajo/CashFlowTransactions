@@ -1,0 +1,70 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "CashFlowTransactions.GrpcService";
+import "google/protobuf/timestamp.proto";
+
+package transactions;
+
+enum TransactionType {
+  CREDIT = 0;
+  DEBIT = 1;
+}
+
+// The greeting service definition.
+service TransactionService {
+  rpc RegisterTransaction (CreateTransactionRequest) returns (CreateTransactionResponse);
+  rpc GetTransactionById (GetTransactionByIdRequest) returns (Transaction);
+  rpc GetTransactions (GetTransactionsRequest) returns (PaginatedTransactionsResponse);
+}
+
+message Transaction {
+  int32 id = 1;
+  string description = 2;
+  double amount = 3;
+  TransactionType type = 4;
+  string origin = 5;
+  google.protobuf.Timestamp transaction_date = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message GetTransactionByIdRequest {
+  int32 id = 1; 
+}
+
+message GetTransactionsRequest {
+  int32 pageNumber = 1; 
+  int32 pageSize = 2; 
+  google.protobuf.Timestamp startDate = 3;
+  google.protobuf.Timestamp endDate = 4;
+  TransactionType type = 5;
+  double minAmount = 6; 
+  double maxAmount = 7; 
+  string description = 8; 
+  string origin = 9; 
+
+}
+
+message CreateTransactionResponse {
+  int32 transaction_id = 1;
+  string message_id = 2;
+  string status = 3;
+}
+
+message CreateTransactionRequest {
+  string description = 1;
+  double amount = 2;
+  TransactionType type = 3;
+  string origin = 4;
+  google.protobuf.Timestamp transaction_date = 5;
+
+}
+
+message PaginatedTransactionsResponse {
+  repeated Transaction items = 1;
+  int32 page_number = 2;
+  int32 page_size = 3;
+  int32 total_count = 4;
+  int32 total_pages = 5;
+  bool has_previous_page = 6;
+  bool has_next_page = 7;
+}
